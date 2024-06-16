@@ -1,0 +1,16 @@
+.{
+    .name = "neoplot",
+    .version = "0.0.1",
+
+    .dependencies = .{
+        .gnuplot = .{
+            .path = "./deps/gnuplot",
+        },
+    },
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}
