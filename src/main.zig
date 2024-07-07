@@ -39,8 +39,13 @@ const CallType = enum {
 fn call(code_len: usize, @"type": CallType) i32 {
     gp.init("svg");
 
-    var fifo = Fifo.init(allocator);
-    gp.c.gpoutfile = gp.c.fopencookie(&fifo, "w", .{ .write = gp.fifoCookieFn(Fifo).write });
+    // Redirect the output of graphics devices
+    var term_output_fifo = Fifo.init(allocator);
+    gp.c.gpoutfile = gp.c.fopencookie(&term_output_fifo, "w", .{ .write = gp.fifoCookieFn(Fifo).write });
+
+    // Redirect the output of the `print` command
+    var print_output_fifo = Fifo.init(allocator);
+    gp.c.print_out = gp.c.fopencookie(&print_output_fifo, "w", .{ .write = gp.fifoCookieFn(Fifo).write });
 
     const code = switch (@"type") {
         .exec => allocator.alloc(u8, code_len),
@@ -57,11 +62,17 @@ fn call(code_len: usize, @"type": CallType) i32 {
         .eval => gp.c.do_string(code.ptr),
     }
 
-    const result = fifo.toOwnedSlice() catch return 1;
-    defer allocator.free(result);
-
-    if (result.len > 0)
-        wasm_minimal_protocol_send_result_to_host(result.ptr, result.len);
+    const term_output = term_output_fifo.toOwnedSlice() catch return 1;
+    defer allocator.free(term_output);
+    if (term_output.len > 0) {
+        wasm_minimal_protocol_send_result_to_host(term_output.ptr, term_output.len);
+        print_output_fifo.deinit();
+    } else {
+        const print_output = print_output_fifo.toOwnedSlice() catch return 1;
+        defer allocator.free(print_output);
+        if (print_output.len > 0)
+            wasm_minimal_protocol_send_result_to_host(print_output.ptr, print_output.len);
+    }
     return 0;
 }
 
