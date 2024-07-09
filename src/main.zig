@@ -37,6 +37,8 @@ const CallType = enum {
 };
 
 fn call(code_len: usize, @"type": CallType) i32 {
+    if (code_len == 0) return 0;
+
     gp.init("svg");
 
     // Redirect the output of graphics devices
