@@ -48,7 +48,7 @@ Execute a gnuplot script:
 ````typ
 #image.decode(
     gp.exec(
-        ```
+        ```gnuplot
         # Can add comments since this is a script
         set samples 1000
         set xlabel 'x axis'
@@ -62,7 +62,7 @@ Execute a gnuplot script:
 ````
 #image.decode(
     gp.exec(
-        ```
+        ```gnuplot
         # Can add comments since this is a script
         set samples 1000
         set xlabel 'x axis'
@@ -107,7 +107,7 @@ is equivalent to
 ````typ
 #image.decode(
     gp.exec(
-        ```
+        ```gnuplot
         $data <<EOD
         0  0
         2  4
@@ -120,7 +120,7 @@ is equivalent to
 ````
 #image.decode(
     gp.exec(
-        ```
+        ```gnuplot
         $data <<EOD
         0  0
         2  4

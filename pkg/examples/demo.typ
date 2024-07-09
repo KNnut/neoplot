@@ -150,7 +150,7 @@ splot [-2:1][-1.5:1.5] mand({0,0},compl(x,y),30);
 #figure(
     image.decode(
         width: 85%,
-        gp.exec(```
+        gp.exec(```gnuplot
 reset
 set term svg
 
@@ -190,7 +190,7 @@ plot abs(A(jw)) lt 1, 180/pi*arg(A(jw)) axes x1y2 lt 3
 #figure(
     image.decode(
         width: 90%,
-        gp.exec(```
+        gp.exec(```gnuplot
 reset
 
 set view 49, 28, 1, 1.48
@@ -224,7 +224,7 @@ splot '++' using 1:2:(Z($1,$2)):(color($1,$2)) with pm3d title "4 data columns x
 #figure(
     image.decode(
         width: 85%,
-        gp.exec(```
+        gp.exec(```gnuplot
 reset
 
 set sample 300
@@ -253,7 +253,7 @@ datablock can be used with ```typ gp.exec```:
 #figure(
     image.decode(
         width: 90%,
-        gp.exec(```
+        gp.exec(```gnuplot
 reset
 
 set title "Change in rank over time"
@@ -290,7 +290,7 @@ plot for [k=1:6] $data using ($0+1):(column(k)):(0.4) with hsteps link lw 1 lc k
 #figure(
     image.decode(
         width: 85%,
-        gp.exec(```
+        gp.exec(```gnuplot
 reset
 
 $Data <<EOD
@@ -334,7 +334,7 @@ Read and plot a file using datablock:
             "$data <<EOD\n" +
             read("data/silver.dat") +
             "EOD\n" +
-            ```
+            ```gnuplot
 set title "Error on y represented by filledcurve shaded region"
 set xlabel "Time (sec)"
 set ylabel "Rate"
@@ -355,7 +355,7 @@ plot $data using 1:($2+$3):($2-$3) \
 #figure(
     image.decode(
         width: 85%,
-        gp.exec(```
+        gp.exec(```gnuplot
 reset
 
 set title "Demo of enhanced text mode using a single UTF-8 encoded font\nThere is another demo that shows how to use a separate Symbol font"
@@ -406,7 +406,7 @@ plot sin(x)**2 lt 2 lw 2 title "sin^2(x)"
 #figure(
     image.decode(
         width: 85%,
-        gp.exec(```
+        gp.exec(```gnuplot
 reset
 set view equal xy
 set zzeroaxis; set xzeroaxis; set yzeroaxis
@@ -461,4 +461,3 @@ unset multiplot
     ),
     caption: "The current palette",
 )
-
