@@ -44,3 +44,5 @@
 #define WITH_CHI_SHAPES
 #define WITH_EXTRA_COORDINATE
 #define NO_BITMAP_SUPPORT
+
+#define NO_GIH
