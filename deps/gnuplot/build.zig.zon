@@ -3,7 +3,7 @@
     .version = "6.1.0",
     .dependencies = .{
         .gnuplot = .{
-            .url = "https://web.archive.org/web/20240707081425id_/https://sourceforge.net/code-snapshots/git/g/gn/gnuplot/gnuplot-main.git/gnuplot-gnuplot-main-e9d5564c5f905388ef9f8a53fb61dfc91e0740af.zip",
+            .url = "https://github.com/salewski/gnuplot-main-mirror/archive/e9d5564c5f905388ef9f8a53fb61dfc91e0740af.tar.gz",
             .hash = "1220cd7046c01ecfdc10439b798b6d6dc4da69a07afca299438e977fb39f3f6aecd7",
         },
         .ruby_wasm_runtime = .{
