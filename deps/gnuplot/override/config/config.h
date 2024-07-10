@@ -46,3 +46,4 @@
 #define NO_BITMAP_SUPPORT
 
 #define NO_GIH
+#define HELPFILE ""
