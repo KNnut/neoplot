@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 pub const c = @import("c.zig");
 
 pub fn fifoCookieFn(comptime FifoType: type) c.cookie_io_functions_t {
@@ -46,9 +47,19 @@ export const noinputfiles = false;
 export const ctrlc_flag = false;
 
 export fn interrupt_setup() void {}
-export fn bail_to_command_line() void {}
 export fn restrict_popen() void {}
 export fn gp_expand_tilde(_: i32) void {}
+
+var command_line_env = std.mem.zeroes(c.JMP_BUF);
+export fn bail_to_command_line() void {
+    if (builtin.target.isWasm()) {
+        if (c.fit_env) |fit_env| {
+            c._rb_wasm_longjmp(fit_env, c.TRUE);
+        } else {
+            c._rb_wasm_longjmp(&command_line_env, c.TRUE);
+        }
+    }
+}
 
 export fn init_constants() void {
     _ = c.Gcomplex(&c.udv_pi.udv_value, std.math.pi, 0.0);
@@ -86,8 +97,10 @@ fn init_term(term: [:0]const u8) void {
     const term_copied = c.gp_strdup(term);
     c.do_string(c.strcat(@constCast(set_term), term_copied));
 
-    const udv_term = c.add_udv_by_name(@constCast("GNUTERM"));
+    const udv_term = c.get_udv_by_name(@constCast("GNUTERM"));
     _ = c.Gstring(&udv_term.*.udv_value, term_copied);
+
+    c.term_on_entry = false;
 }
 
 var inited = false;
@@ -95,6 +108,7 @@ pub fn init(term: [:0]const u8) void {
     if (inited) return;
     inited = true;
 
+    _ = c.add_udv_by_name(@constCast("GNUTERM"));
     _ = c.add_udv_by_name(@constCast("I"));
     _ = c.add_udv_by_name(@constCast("NaN"));
     init_constants();
@@ -108,7 +122,16 @@ pub fn init(term: [:0]const u8) void {
     c.init_gadgets();
 
     init_term(term);
+    c.push_terminal(0);
 
     c.update_gpval_variables(3);
     init_session();
+
+    if (builtin.target.isWasm()) {
+        if (c._rb_wasm_setjmp(@ptrCast(&command_line_env)) != 0) {
+            c.clause_reset_after_error();
+            c.lf_reset_after_error();
+            c.inside_plot_command = false;
+        }
+    }
 }

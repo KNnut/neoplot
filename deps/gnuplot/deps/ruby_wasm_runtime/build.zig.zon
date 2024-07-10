@@ -1,0 +1,10 @@
+.{
+    .name = "ruby_wasm_runtime",
+    .version = "3.3.4",
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}

@@ -91,6 +91,11 @@ pub fn build(b: *std.Build) !void {
             "",
             .{ .include_extensions = &.{".h"} },
         );
+
+        if (b.lazyDependency("ruby_wasm_runtime", .{ .target = target, .optimize = optimize })) |ruby_wasm_runtime| {
+            lib.linkLibrary(ruby_wasm_runtime.artifact("ruby_wasm_runtime"));
+            lib.installHeader(ruby_wasm_runtime.path("src/setjmp.h"), "setjmp.h");
+        }
     }
 
     lib.step.dependOn(&wf.step);

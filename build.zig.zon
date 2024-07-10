@@ -4,7 +4,7 @@
 
     .dependencies = .{
         .gnuplot = .{
-            .path = "./deps/gnuplot",
+            .path = "deps/gnuplot",
         },
     },
 
