@@ -14,10 +14,16 @@ pub fn build(b: *std.Build) void {
         .link_libc = true,
     });
 
+    const module = b.addModule("ruby_wasm_runtime", .{
+        .root_source_file = b.path("src/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    module.linkLibrary(lib);
+
     lib.installHeader(b.path("src/setjmp.h"), "setjmp.h");
 
     const sources = [_][]const u8{
-        "runtime.c",
         "setjmp.c",
         "setjmp_core.S",
     };

@@ -11,13 +11,14 @@ pub fn build(b: *std.Build) !void {
         .link_libc = true,
     });
 
-    const module = b.addModule(
-        "gnuplot",
-        .{ .root_source_file = b.path("src/root.zig") },
-    );
+    const module = b.addModule("gnuplot", .{
+        .root_source_file = b.path("src/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     module.linkLibrary(lib);
 
-    const upstream = b.dependency("gnuplot", .{});
+    const upstream = b.dependency("gnuplot", .{ .target = target, .optimize = optimize });
 
     lib.addIncludePath(upstream.path("src"));
     lib.addIncludePath(upstream.path("term"));
@@ -34,13 +35,13 @@ pub fn build(b: *std.Build) !void {
         "config.h",
     );
 
-    const wf = upstream.builder.addWriteFiles();
-
     const upstream_dir = upstream.builder.build_root.handle;
     upstream_dir.access("src/default_term.h", .{}) catch |err| switch (err) {
         error.FileNotFound => {
-            wf.addCopyFileToSource(upstream.path("src/term.h"), "src/default_term.h");
-            wf.addCopyFileToSource(b.path("override/include/term.h"), "src/term.h");
+            const copy_term_h = upstream.builder.addUpdateSourceFiles();
+            copy_term_h.addCopyFileToSource(upstream.path("src/term.h"), "src/default_term.h");
+            copy_term_h.addCopyFileToSource(b.path("override/include/term.h"), "src/term.h");
+            lib.step.dependOn(&copy_term_h.step);
         },
         else => return err,
     };
@@ -63,6 +64,7 @@ pub fn build(b: *std.Build) !void {
                 const enable_domterm = "strcmp(term->name, \"domterm\") == ";
                 const enable_mouse = "SVG_mouseable = TRUE;";
                 const enable_standalone = "SVG_standalone = TRUE;";
+                const enable_doctype = "SVG_emit_doctype)";
                 const enable_hypertext = "SVG_hypertext\t";
 
                 var times = std.mem.replace(u8, bytes, enable_domterm, "", bytes);
@@ -71,6 +73,8 @@ pub fn build(b: *std.Build) !void {
                 size -= enable_mouse.len * times;
                 times = std.mem.replace(u8, bytes[0..size], enable_standalone, "", bytes);
                 size -= enable_standalone.len * times;
+                times = std.mem.replace(u8, bytes[0..size], enable_doctype, "0)", bytes);
+                size -= (enable_doctype.len - 2) * times;
                 times = std.mem.replace(u8, bytes[0..size], enable_hypertext, "0", bytes);
                 size -= (enable_hypertext.len - 1) * times;
 
@@ -97,8 +101,6 @@ pub fn build(b: *std.Build) !void {
             lib.installHeader(ruby_wasm_runtime.path("src/setjmp.h"), "setjmp.h");
         }
     }
-
-    lib.step.dependOn(&wf.step);
 
     const sources = [_][]const u8{
         "alloc.c",

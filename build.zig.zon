@@ -6,6 +6,10 @@
         .gnuplot = .{
             .path = "deps/gnuplot",
         },
+        .zbor = .{
+            .url = "https://github.com/r4gus/zbor/archive/refs/tags/0.15.0.tar.gz",
+            .hash = "12209a78f8c31b6d65d2249082dc824da4a191f6f7be6a1c1740fc093b765c5ebeea",
+        },
     },
 
     .paths = .{

@@ -1,1 +1,1 @@
-#import "neoplot.typ": exec, eval
+#import "neoplot.typ": exec

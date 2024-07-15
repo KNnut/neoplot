@@ -12,145 +12,111 @@
     ]
 )
 
-```typ gp.eval``` can be used to run gnuplot commands:
+```typ gp.exec(kind: "command", command)``` can be used to run gnuplot commands:
 
-#let _ = gp.eval("set term svg size 500, 400")
+#gp.exec(kind: "command", "set term svg size 500, 400")
 #figure(
-    image.decode(
+    gp.exec(
+        kind: "command",
         width: 55%,
-        gp.eval("set xrange[-2.5*pi:2.5*pi]; set yrange[-1.3:1.3]; plot sin(x), cos(x);"),
+        "set xrange[-2.5*pi:2.5*pi]; set yrange[-1.3:1.3]; plot sin(x), cos(x);",
     ),
     caption: "Graphs of Sine and Cosine",
 )
 
-Notice that Typst caches the results for WASM functions:
-```typ
-#gp.eval("reset")  // Will be executed
-#gp.exec("reset")  // Will be executed
-#gp.eval("reset;") // Will be executed
-
-#gp.exec("reset")  // Won't be executed, returns the cached result
-#gp.eval("reset")  // Won't be executed, returns the cached result
-
-#gp.exec("reset;") // Will be executed
-#gp.exec("reset;") // Won't be executed, returns the cached result
-```
+```typ gp.exec(script)``` can be used to run a gnuplot script:
 
 #figure(
     grid(
         columns: 2,
         rows: 2,
         gutter: 0pt,
-        image.decode(
+        gp.exec(
             width: 90%,
-            gp.eval("
-reset;
-set term svg size 600, 400;
-set grid;
-unset hidden3d;
-undefine $*;
-set samples 21;
-set isosample 11;
-set xlabel \"X axis\" offset 1,0;
-set ylabel \"Y axis\" offset -4,-1;
-set zlabel \"Z axis\" offset -5;
-set title \"3D surface from a function\";
-set label 1 \"This is the surface boundary\" at -10,-5,150 center;
-set arrow 1 from -10,-5,120 to -10,0,0 nohead;
-set arrow 2 from -10,-5,120 to 10,0,0 nohead;
-set arrow 3 from -10,-5,120 to 0,10,0 nohead;
-set arrow 4 from -10,-5,120 to 0,-10,0 nohead;
-splot x*y;
-            "),
-        ),
-        image.decode(
+            ```gnuplot
+reset
+set term svg size 600, 400
+set grid
+set samples 21
+set isosample 11
+set xlabel "X axis" offset -3,-2
+set ylabel "Y axis" offset 3,-2
+set zlabel "Z axis" offset -5
+set title "3D surface from a function"
+set label 1 "This is the surface boundary" at -10,-5,150 center
+set arrow 1 from -10,-5,120 to -10,0,0 nohead
+set arrow 2 from -10,-5,120 to 10,0,0 nohead
+set arrow 3 from -10,-5,120 to 0,10,0 nohead
+set arrow 4 from -10,-5,120 to 0,-10,0 nohead
+set xrange [-10:10]
+set yrange [-10:10]
+splot x*y
+        ```),
+        gp.exec(
             width: 90%,
-            gp.eval("
-reset;
-set grid nopolar;
-set grid xtics nomxtics ytics nomytics noztics nomztics nortics nomrtics
-nox2tics nomx2tics noy2tics nomy2tics nocbtics nomcbtics;
-set grid layerdefault lt 0 linecolor 0 linewidth 0.500, lt 0 linecolor 0 linewidth 0.500;
-set samples 21, 21;
-set isosamples 11, 11;
-set style data lines;
-set title \"3D surface from a function\" ;
-set xlabel \"X axis\" ;
-set xlabel offset character 1, 0, 0 font \"\" textcolor lt -1 norotate;
-set xrange [ -10.0000 : 10.0000 ] noreverse nowriteback;
-set x2range [ * : * ] noreverse writeback;
-set ylabel \"Y axis\" ;
-set ylabel offset character -4, -1, 0 font \"\" textcolor lt -1 rotate;
-set yrange [ -10.0000 : 10.0000 ] noreverse nowriteback;
-set y2range [ * : * ] noreverse writeback;
-set zlabel \"Z axis\" ;
-set zlabel offset character -5, 0, 0 font \"\" textcolor lt -1 norotate;
-set zrange [ * : * ] noreverse writeback;
-set cbrange [ * : * ] noreverse writeback;
-set rrange [ * : * ] noreverse writeback;
-set colorbox vertical origin screen 0.9, 0.2 size screen 0.05, 0.6 front noinvert bdefault;
-splot x**2+y**2, x**2-y**2, (x**3+y**3)/10;
-            "),
-        ),
+            ```gnuplot
+reset
+set grid nopolar
+set grid xtics nomxtics ytics nomytics noztics nomztics nortics nomrtics \
+ nox2tics nomx2tics noy2tics nomy2tics nocbtics nomcbtics
+set grid layerdefault lt 0 linecolor 0 linewidth 0.500, lt 0 linecolor 0 linewidth 0.500
+set samples 21, 21
+set isosamples 11, 11
+set style data lines
+set title "3D surface from a function"
+set xlabel "X axis"
+set xlabel offset character -3, -2, 0 font "" textcolor lt -1 norotate
+set xrange [ -10.0000 : 10.0000 ] noreverse nowriteback
+set x2range [ * : * ] noreverse writeback
+set ylabel "Y axis"
+set ylabel offset character 3, -2, 0 font "" textcolor lt -1 rotate
+set yrange [ -10.0000 : 10.0000 ] noreverse nowriteback
+set y2range [ * : * ] noreverse writeback
+set zlabel "Z axis"
+set zlabel offset character -5, 0, 0 font "" textcolor lt -1 norotate
+set zrange [ * : * ] noreverse writeback
+set cbrange [ * : * ] noreverse writeback
+set rrange [ * : * ] noreverse writeback
+splot x**2+y**2, x**2-y**2, (x**3+y**3)/10
+        ```),
         grid.cell(
             colspan: 2,
-            image.decode(
+            gp.exec(
                 width: 60%,
-                gp.eval("
-reset;
-set term svg size 600, 300;
-set samples 51, 51;
-set isosamples 60, 60;
-set hidden3d back offset 0 trianglepattern 3 undefined 1 altdiagonal bentover;
-set style data lines;
-set title \"Mandelbrot function\" ;
-set xlabel \"X axis\" ;
-set xlabel offset character 1, 0, 0 font \"\" textcolor lt -1 norotate;
-set xrange [ * : * ] noreverse writeback;
-set x2range [ * : * ] noreverse writeback;
-set ylabel \"Y axis\" ;
-set ylabel offset character -7, -1, 0 font \"\" textcolor lt -1 rotate;
-set yrange [ * : * ] noreverse writeback;
-set y2range [ * : * ] noreverse writeback;
-set zlabel \"Z axis\" ;
-set zlabel offset character -5, 0, 0 font \"\" textcolor lt -1 norotate;
-set zrange [ * : * ] noreverse writeback;
-set cbrange [ * : * ] noreverse writeback;
-set rrange [ * : * ] noreverse writeback;
-set colorbox vertical origin screen 0.9, 0.2 size screen 0.05, 0.6 front noinvert bdefault;
-sinc(u,v) = sin(sqrt(u**2+v**2)) / sqrt(u**2+v**2);
-compl(a,b)=a*{1,0}+b*{0,1};
-mand(z,a,n) = n<=0 || abs(z)>100 ? 1:mand(z*z+a,a,n-1)+1;
-xx = 6.08888888888889;
-dx = 1.11;
-x0 = -5;
-x1 = -3.89111111111111;
-x2 = -2.78222222222222;
-x3 = -1.67333333333333;
-x4 = -0.564444444444444;
-x5 = 0.544444444444445;
-x6 = 1.65333333333333;
-x7 = 2.76222222222222;
-x8 = 3.87111111111111;
-x9 = 4.98;
-xmin = -4.99;
-xmax = 5;
-n = 10;
-zbase = -1;
-splot [-2:1][-1.5:1.5] mand({0,0},compl(x,y),30);
-                "),
-            ),
+                ```gnuplot
+reset
+set term svg size 600, 300
+set title "Mandelbrot function"
+unset parametric
+set mapping cartesian
+set view 60,30,1,1
+set auto
+set isosamples 60
+set hidden3d
+compl(a,b)=a*{1,0}+b*{0,1}
+mand(z,a,n) = n<=0 || abs(z)>100 ? 1:mand(z*z+a,a,n-1)+1
+splot [-2:1][-1.5:1.5] mand({0,0},compl(x,y),30)
+            ```),
         ),
     ),
     caption: "surface1.dem",
 )
 
-```typ gp.exec``` can be used to run a gnuplot file:
+Notice that Typst caches the results for WASM functions:
+```typ
+#gp.exec("reset")                   // Will be executed
+#gp.exec(kind: "command", "reset")  // Will be executed
+#gp.exec(kind: "command", "reset;") // Will be executed
+
+#gp.exec("reset")                   // Won't be executed, returns the cached result
+#gp.exec("reset;")                  // Will be executed
+#gp.exec("reset;")                  // Won't be executed, returns the cached result
+```
 
 #figure(
-    image.decode(
+    gp.exec(
         width: 85%,
-        gp.exec(```gnuplot
+        ```gnuplot
 reset
 set term svg
 
@@ -182,15 +148,14 @@ p1 = 10
 p2 = 10000
 
 plot abs(A(jw)) lt 1, 180/pi*arg(A(jw)) axes x1y2 lt 3
-        ```),
-    ),
+    ```),
     caption: "nonlinear2.dem",
 )
 
 #figure(
-    image.decode(
+    gp.exec(
         width: 90%,
-        gp.exec(```gnuplot
+        ```gnuplot
 reset
 
 set view 49, 28, 1, 1.48
@@ -216,15 +181,14 @@ sinc(x,y) = sin(sqrt((x-20.)**2+(y-20.)**2))/sqrt((x-20.)**2+(y-20.)**2)
 color(x,y) = 10. * (1.1 + sin((x-20.)/5.)*cos((y-20.)/10.))
 
 splot '++' using 1:2:(Z($1,$2)):(color($1,$2)) with pm3d title "4 data columns x/y/z/color"
-        ```),
-    ),
+    ```),
     caption: "heatmaps.dem",
 )
 
 #figure(
-    image.decode(
+    gp.exec(
         width: 85%,
-        gp.exec(```gnuplot
+        ```gnuplot
 reset
 
 set sample 300
@@ -243,17 +207,16 @@ if (GPVAL_VERSION >= 6.0) {
     unset key; plot NaN
 }
 unset multiplot
-        ```),
-    ),
+    ```),
     caption: "sharpen.dem",
 )
 
-datablock can be used with ```typ gp.exec```:
+datablock can be used in a script:
 
 #figure(
-    image.decode(
+    gp.exec(
         width: 90%,
-        gp.exec(```gnuplot
+        ```gnuplot
 reset
 
 set title "Change in rank over time"
@@ -282,15 +245,14 @@ set grid xtics
 
 plot for [k=1:6] $data using ($0+1):(column(k)):(0.4) with hsteps link lw 1 lc k, \
      for [k=1:6] $data using ($0+1):(column(k)):(0.4) with hsteps nolink lw 6 lc k
-        ```),
-    ),
+    ```),
     caption: "rank_sequence.dem",
 )
 
 #figure(
-    image.decode(
+    gp.exec(
         width: 85%,
-        gp.exec(```gnuplot
+        ```gnuplot
 reset
 
 $Data <<EOD
@@ -319,22 +281,20 @@ set ytics 1,1,12 nomirror
 set border 3
 
 plot $Data using 1:1:2:3:0 with labels rotate variable tc variable font ",20"
-        ```)
-    ),
+    ```),
     caption: "rotate_labels.dem",
 )
 
-Read and plot a file using datablock:
+Read and plot a data file using datablock:
 
-#gp.eval("reset")
+#gp.exec(kind: "command", "reset")
 #figure(
-    image.decode(
+    gp.exec(
         width: 85%,
-        gp.exec(
-            "$data <<EOD\n" +
-            read("data/silver.dat") +
-            "EOD\n" +
-            ```gnuplot
+        "$data <<EOD\n" +
+        read("data/silver.dat") +
+        "EOD\n" +
+        ```gnuplot
 set title "Error on y represented by filledcurve shaded region"
 set xlabel "Time (sec)"
 set ylabel "Rate"
@@ -346,16 +306,15 @@ plot $data using 1:($2+$3):($2-$3) \
     title "Shaded error region", \
     '' using 1:2 smooth mcspline lw 2 \
     title "Monotonic spline through data"
-            ```.text
-        ),
+        ```.text
     ),
     caption: "errorbars.dem",
 )
 
 #figure(
-    image.decode(
+    gp.exec(
         width: 85%,
-        gp.exec(```gnuplot
+        ```gnuplot
 reset
 
 set title "Demo of enhanced text mode using a single UTF-8 encoded font\nThere is another demo that shows how to use a separate Symbol font"
@@ -398,15 +357,14 @@ set label 30 at -.9, 0.0 "{/:Bold Bold} and {/:Italic Italic} markup"
 
 set key title " "
 plot sin(x)**2 lt 2 lw 2 title "sin^2(x)"
-        ```)
-    ),
+    ```),
     caption: "enhanced_utf8.dem",
 )
 
 #figure(
-    image.decode(
+    gp.exec(
         width: 85%,
-        gp.exec(```gnuplot
+        ```gnuplot
 reset
 set view equal xy
 set zzeroaxis; set xzeroaxis; set yzeroaxis
@@ -441,23 +399,24 @@ set view azimuth 60.
 replot
 
 unset multiplot
-        ```),
-    ),
+    ```),
     caption: "azimuth.dem",
 )
 
 #figure(
-    image.decode(
+    gp.exec(
+        kind: "command",
         width: 90%,
-        gp.eval("test"),
+        "test",
     ),
     caption: "The current terminal",
 )
 
 #figure(
-    image.decode(
+    gp.exec(
+        kind: "command",
         width: 90%,
-        gp.eval("reset; test palette"),
+        "reset; set palette viridis; test palette",
     ),
     caption: "The current palette",
 )

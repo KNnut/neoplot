@@ -18,6 +18,7 @@ pub fn build(b: *std.Build) !void {
     });
     exe.entry = .disabled;
     exe.rdynamic = true;
+    exe.wasi_exec_model = .reactor;
 
     const strip: ?bool = b.option(
         bool,
@@ -51,8 +52,14 @@ pub fn build(b: *std.Build) !void {
     if (strip) |s|
         exe.root_module.strip = s;
 
-    const gnuplot_mod = b.dependency("gnuplot", .{ .target = target, .optimize = optimize }).module("gnuplot");
+    const gnuplot = b.dependency("gnuplot", .{ .target = target, .optimize = optimize });
+    const gnuplot_mod = gnuplot.module("gnuplot");
     exe.root_module.addImport("gnuplot", gnuplot_mod);
+
+    if (gnuplot.builder.lazyDependency("ruby_wasm_runtime", .{ .target = target, .optimize = optimize })) |ruby_wasm_runtime| {
+        const ruby_wasm_runtime_mod = ruby_wasm_runtime.module("ruby_wasm_runtime");
+        exe.root_module.addImport("ruby_wasm_runtime", ruby_wasm_runtime_mod);
+    }
 
     if (stub_wasi)
         gnuplot_mod.addCSourceFile(.{
@@ -60,35 +67,51 @@ pub fn build(b: *std.Build) !void {
             .flags = &.{"-std=c23"},
         });
 
-    b.resolveInstallPrefix("pkg", .{});
+    const zbor_mod = b.dependency("zbor", .{ .target = target, .optimize = optimize }).module("zbor");
+    exe.root_module.addImport("zbor", zbor_mod);
+
+    b.resolveInstallPrefix(try b.build_root.join(b.allocator, &.{"pkg"}), .{});
     const install_exe = b.addInstallArtifact(exe, .{
         .dest_dir = .{ .override = .{ .custom = "" } },
     });
 
     const stub_wasip1_step = if (wasi_stub) blk: {
+        const errno_t = std.os.wasi.errno_t;
         const stub_fd_write = b.addSystemCommand(&.{
             "wasi-stub",
             "--stub-function",
             "wasi_snapshot_preview1:fd_write",
             "-r",
-            "76",
+            b.fmt("{d}", .{@intFromEnum(errno_t.NOTCAPABLE)}),
         });
         stub_fd_write.addArtifactArg(exe);
         stub_fd_write.addArg("-o");
         stub_fd_write.addArtifactArg(exe);
         stub_fd_write.step.dependOn(&install_exe.step);
 
+        const stub_fd_prestat_get = b.addSystemCommand(&.{
+            "wasi-stub",
+            "--stub-function",
+            "wasi_snapshot_preview1:fd_prestat_get",
+            "-r",
+            b.fmt("{d}", .{@intFromEnum(errno_t.BADF)}),
+        });
+        stub_fd_prestat_get.addArtifactArg(exe);
+        stub_fd_prestat_get.addArg("-o");
+        stub_fd_prestat_get.addArtifactArg(exe);
+        stub_fd_prestat_get.step.dependOn(&stub_fd_write.step);
+
         const stub_wasip1 = b.addSystemCommand(&.{
             "wasi-stub",
             "--stub-module",
             "wasi_snapshot_preview1",
             "-r",
-            "0",
+            b.fmt("{d}", .{@intFromEnum(errno_t.SUCCESS)}),
         });
         stub_wasip1.addArtifactArg(exe);
         stub_wasip1.addArg("-o");
         stub_wasip1.addArtifactArg(exe);
-        stub_wasip1.step.dependOn(&stub_fd_write.step);
+        stub_wasip1.step.dependOn(&stub_fd_prestat_get.step);
         break :blk &stub_wasip1.step;
     } else &install_exe.step;
 
@@ -128,7 +151,10 @@ pub fn build(b: *std.Build) !void {
                 "-Oz",
                 "-Oz",
             });
-        run_wasm_opt.addArg("--asyncify");
+        run_wasm_opt.addArgs(&.{
+            "-ocimfs=0",
+            "--asyncify",
+        });
         if (optimize == .ReleaseFast)
             run_wasm_opt.addArgs(&.{
                 "-O4",
