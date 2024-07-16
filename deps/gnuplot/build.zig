@@ -38,10 +38,16 @@ pub fn build(b: *std.Build) !void {
     const upstream_dir = upstream.builder.build_root.handle;
     upstream_dir.access("src/default_term.h", .{}) catch |err| switch (err) {
         error.FileNotFound => {
-            const copy_term_h = upstream.builder.addUpdateSourceFiles();
-            copy_term_h.addCopyFileToSource(upstream.path("src/term.h"), "src/default_term.h");
-            copy_term_h.addCopyFileToSource(b.path("override/include/term.h"), "src/term.h");
-            lib.step.dependOn(&copy_term_h.step);
+            const replace_term_h = upstream.builder.addUpdateSourceFiles();
+            replace_term_h.addCopyFileToSource(upstream.path("src/term.h"), "src/default_term.h");
+            replace_term_h.addBytesToSource(
+                \\#ifdef TERM_H
+                \\#include TERM_H
+                \\#else
+                \\#include "default_term.h"
+                \\#endif
+            , "src/term.h");
+            lib.step.dependOn(&replace_term_h.step);
         },
         else => return err,
     };

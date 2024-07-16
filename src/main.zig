@@ -92,8 +92,8 @@ fn call(code: [:0]const u8, @"type": CallType) !void {
     const svg_list = try svg_array_list.toOwnedSlice();
     defer allocator.free(svg_list);
 
-    var result_array_list = std.ArrayList(u8).init(allocator);
-    errdefer result_array_list.deinit();
+    var result_fifo = Fifo.init(allocator);
+    errdefer result_fifo.deinit();
 
     try cbor.stringify(.{
         .term_output = if (svg_list.len > 0) svg_list else null,
@@ -103,9 +103,9 @@ fn call(code: [:0]const u8, @"type": CallType) !void {
             .{ .name = "term_output", .field_options = .{ .skip = .None } },
             .{ .name = "print_output", .field_options = .{ .skip = .None } },
         },
-    }, result_array_list.writer());
+    }, result_fifo.writer());
 
-    const result = try result_array_list.toOwnedSlice();
+    const result = try result_fifo.toOwnedSlice();
     defer allocator.free(result);
 
     wasm_minimal_protocol_send_result_to_host(result.ptr, result.len);

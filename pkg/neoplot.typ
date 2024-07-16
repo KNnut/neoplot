@@ -14,14 +14,6 @@
     }
 }
 
-#let get-bytes(it) = {
-    if type(it) == bytes {
-        it
-    } else {
-        bytes(get-text(it))
-    }
-}
-
 #let get-svg-image(..args) = image.decode(format: "svg", ..args)
 
 #let bridge(code, kind) = {
@@ -53,22 +45,22 @@
     if kind not in ("script", "command") {
         panic("Invalid code type `" + kind + "`")
     }
-    if (format == none) {
+    if format == none {
         return
     }
-    let code = get-bytes(it)
+    let code = get-text(it)
     if code.len() == 0 {
         return
     }
-    if (format == auto) {
+    if format == auto {
         return {
             let (
                 print-output,
                 term-output,
             ) = bridge(code, kind)
-            if (term-output != none) {
+            if term-output != none {
                 get-svg-image(term-output.last(), ..args)
-            } else if (print-output != none) {
+            } else if print-output != none {
                 str(print-output)
             }
         }
@@ -86,10 +78,7 @@
         }
     }).dedup()
     for fmt in format {
-        if fmt not in (
-            "print",
-            ..term-format,
-        ) {
+        if fmt not in ("print", ..term-format) {
             panic("Invalid format `" + fmt + "`")
         }
     }
@@ -118,7 +107,7 @@
         )
     }
 
-    if (result.len() == 1) {
+    if result.len() == 1 {
         result.values().first()
     } else {
         result

@@ -44,7 +44,7 @@ __attribute__((noinline)) void _rb_wasm_longjmp(rb_wasm_jmp_buf *env, int payloa
 #define rb_wasm_longjmp(env, payload) (_rb_wasm_longjmp(&env, payload), __builtin_unreachable())
 
 // Returns the Asyncify buffer of next rewinding if unwound for setjmp capturing or longjmp.
-// Used by the top level Asyncify handling in wasm/runtime.c
+// Used by the top level Asyncify handling in root.zig
 void *rb_wasm_handle_jmp_unwind(void);
 
 

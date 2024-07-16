@@ -14,12 +14,11 @@
 
 ```typ gp.exec(kind: "command", command)``` can be used to run gnuplot commands:
 
-#gp.exec(kind: "command", "set term svg size 500, 400")
 #figure(
     gp.exec(
         kind: "command",
         width: 55%,
-        "set xrange[-2.5*pi:2.5*pi]; set yrange[-1.3:1.3]; plot sin(x), cos(x);",
+        "set term svg size 500, 400; set xrange[-2.5*pi:2.5*pi]; set yrange[-1.3:1.3]; plot sin(x), cos(x)",
     ),
     caption: "Graphs of Sine and Cosine",
 )
@@ -211,7 +210,7 @@ unset multiplot
     caption: "sharpen.dem",
 )
 
-datablock can be used in a script:
+Datablock can be used in a script:
 
 #figure(
     gp.exec(
@@ -287,7 +286,7 @@ plot $Data using 1:1:2:3:0 with labels rotate variable tc variable font ",20"
 
 Read and plot a data file using datablock:
 
-#gp.exec(kind: "command", "reset")
+#gp.exec("reset")
 #figure(
     gp.exec(
         width: 85%,
@@ -405,7 +404,6 @@ unset multiplot
 
 #figure(
     gp.exec(
-        kind: "command",
         width: 90%,
         "test",
     ),
@@ -414,7 +412,6 @@ unset multiplot
 
 #figure(
     gp.exec(
-        kind: "command",
         width: 90%,
         "reset; set palette viridis; test palette",
     ),
