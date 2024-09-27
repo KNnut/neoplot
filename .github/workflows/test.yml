@@ -1,0 +1,30 @@
+name: Test
+on: push
+jobs:
+  test:
+    strategy:
+      matrix:
+        optimize: [Debug, ReleaseSafe, ReleaseFast, ReleaseSmall]
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install binaryen typst
+
+      - name: Setup zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: master
+
+      - name: Build
+        run: zig build -Doptimize=${{ matrix.optimize }}
+      
+      - name: Test
+        run: |
+          cd pkg
+          typst compile --root . examples/demo.typ
+          typst compile --root . examples/readme.typ
