@@ -1,6 +1,6 @@
 const std = @import("std");
 const builtin = @import("builtin");
-pub const c = @import("c.zig");
+const c = @import("c");
 
 pub fn fifoCookieFn(comptime FifoType: type) c.cookie_io_functions_t {
     const cookieFn = struct {

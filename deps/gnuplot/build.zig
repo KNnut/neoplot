@@ -28,12 +28,65 @@ pub fn build(b: *std.Build) !void {
         .{ .include_extensions = &.{".h"} },
     );
 
-    lib.addIncludePath(b.path("override/config"));
     lib.root_module.addCMacro("HAVE_CONFIG_H", "");
-    lib.installHeader(
-        b.path("override/config/config.h"),
-        "config.h",
+    const config_header = b.addConfigHeader(
+        .{ .include_path = "config.h" },
+        .{
+            .HAVE_STRING_H = true,
+            .HAVE_MEMCPY = true,
+            .HAVE_STDLIB_H = true,
+            .HAVE_VFPRINTF = true,
+            .STDC_HEADERS = true,
+            .HAVE_UNISTD_H = true,
+            .HAVE_ERRNO_H = true,
+            .HAVE_STRERROR = true,
+            .HAVE_SYS_TYPES_H = true,
+            .HAVE_LIMITS_H = true,
+            .HAVE_FLOAT_H = true,
+            .HAVE_LOCALE_H = true,
+            .HAVE_MATH_H = true,
+            .HAVE_STRCASECMP = true,
+            .HAVE_STRCSPN = true,
+            .HAVE_STRDUP = true,
+            .HAVE_STRNDUP = true,
+            .HAVE_STRNLEN = true,
+            .HAVE_STRCHR = true,
+            .HAVE_STRSTR = true,
+            .HAVE_STRLCPY = true,
+            .HAVE_GETCWD = true,
+            .HAVE_USLEEP = true,
+            .HAVE_SLEEP = true,
+            .HAVE_TIME_H = true,
+
+            .HAVE_STDBOOL_H = true,
+            .HAVE_INTTYPES_H = true,
+            .HAVE_FENV_H = true,
+            .HAVE_COMPLEX_H = true,
+            .HAVE_CSQRT = true,
+            .HAVE_CABS = true,
+            .HAVE_CLOG = true,
+            .HAVE_CEXP = true,
+            .HAVE_LGAMMA = true,
+            .HAVE_TGAMMA = true,
+            .HAVE_ERF = true,
+            .HAVE_ERFC = true,
+            .HAVE_DECL_SIGNGAM = true,
+            .HAVE_DIRENT_H = true,
+            .HAVE_MEMSET = true,
+
+            .USE_POLAR_GRID = true,
+            .USE_STATS = true,
+            .USE_WATCHPOINTS = true,
+            .USE_FUNCTIONBLOCKS = true,
+            .WITH_CHI_SHAPES = true,
+            .WITH_EXTRA_COORDINATE = true,
+            .NO_BITMAP_SUPPORT = true,
+
+            .NO_GIH = true,
+            .HELPFILE = "",
+        },
     );
+    lib.addConfigHeader(config_header);
 
     const upstream_dir = upstream.builder.build_root.handle;
     upstream_dir.access("src/default_term.h", .{}) catch |err| switch (err) {
@@ -96,15 +149,10 @@ pub fn build(b: *std.Build) !void {
         lib.root_module.addCMacro("TERM_H", "\"wasi_term.h\"");
         lib.root_module.addCMacro("_WASI_EMULATED_SIGNAL", "");
 
-        lib.installHeadersDirectory(
-            b.path("override/wasi/include"),
-            "",
-            .{ .include_extensions = &.{".h"} },
-        );
-
         if (b.lazyDependency("ruby_wasm_runtime", .{ .target = target, .optimize = optimize })) |ruby_wasm_runtime| {
-            lib.linkLibrary(ruby_wasm_runtime.artifact("ruby_wasm_runtime"));
-            lib.installHeader(ruby_wasm_runtime.path("src/setjmp.h"), "setjmp.h");
+            const artifact = ruby_wasm_runtime.artifact("ruby_wasm_runtime");
+            lib.linkLibrary(artifact);
+            lib.installLibraryHeaders(artifact);
         }
     }
 
@@ -178,4 +226,35 @@ pub fn build(b: *std.Build) !void {
     });
 
     b.installArtifact(lib);
+
+    const wf = b.addWriteFiles();
+    const gnuplot_h = wf.add("gnuplot.h",
+        \\#include "setshow.h"
+        \\#include "fit.h"
+        \\#include "gadgets.h"
+        \\#include "voxelgrid.h"
+        \\#include "term_api.h"
+        \\#include "misc.h"
+        \\#include "command.h"
+    );
+
+    const translate_c = b.addTranslateC(.{
+        .root_source_file = gnuplot_h,
+        .target = target,
+        .optimize = optimize,
+    });
+    translate_c.defineCMacro("_GNU_SOURCE", null);
+    translate_c.defineCMacro("HAVE_CONFIG_H", null);
+
+    translate_c.addConfigHeader(config_header);
+    translate_c.addIncludePath(upstream.path("src"));
+    translate_c.addIncludePath(upstream.path("term"));
+    if (target.result.os.tag == .wasi) {
+        if (b.lazyDependency("ruby_wasm_runtime", .{ .target = target, .optimize = optimize })) |ruby_wasm_runtime| {
+            translate_c.addIncludePath(ruby_wasm_runtime.path("src"));
+        }
+    }
+
+    const c = translate_c.addModule("c");
+    module.addImport("c", c);
 }

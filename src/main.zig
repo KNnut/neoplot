@@ -1,5 +1,6 @@
 const std = @import("std");
 const gp = @import("gnuplot");
+const gp_c = @import("gnuplot_c");
 const cbor = @import("zbor");
 const ruby_wasm_runtime = @import("ruby_wasm_runtime");
 
@@ -19,9 +20,9 @@ export fn system(_: i32) i32 {
 
 // The `test_palette_subcommand` function requires `tmpfile`
 var tmp_fifo: Fifo = undefined;
-export fn tmpfile() ?*gp.c.FILE {
+export fn tmpfile() ?*gp_c.FILE {
     tmp_fifo = Fifo.init(allocator);
-    return gp.c.fopencookie(&tmp_fifo, "w+", gp.fifoCookieFn(Fifo));
+    return gp_c.fopencookie(&tmp_fifo, "w+", gp.fifoCookieFn(Fifo));
 }
 
 const TypstReturnType = enum(i32) {
@@ -55,20 +56,20 @@ fn call(code: [:0]const u8, @"type": CallType) !void {
     // Redirect the output of graphics devices
     var term_output_fifo = Fifo.init(allocator);
     errdefer term_output_fifo.deinit();
-    gp.c.gpoutfile = gp.c.fopencookie(&term_output_fifo, "w", .{ .write = gp.fifoCookieFn(Fifo).write });
+    gp_c.gpoutfile = gp_c.fopencookie(&term_output_fifo, "w", .{ .write = gp.fifoCookieFn(Fifo).write });
 
     // Redirect the output of the `print` command
     var print_output_fifo = Fifo.init(allocator);
     errdefer print_output_fifo.deinit();
-    gp.c.print_out = gp.c.fopencookie(&print_output_fifo, "w", .{ .write = gp.fifoCookieFn(Fifo).write });
+    gp_c.print_out = gp_c.fopencookie(&print_output_fifo, "w", .{ .write = gp.fifoCookieFn(Fifo).write });
 
     log.debug("type={s}", .{@tagName(@"type")});
     switch (@"type") {
         .script => {
-            const fp = gp.c.fmemopen(@constCast(code.ptr), code.len, "r");
-            gp.c.load_file(fp, null, 1);
+            const fp = gp_c.fmemopen(@constCast(code.ptr), code.len, "r");
+            gp_c.load_file(fp, null, 1);
         },
-        .command => gp.c.do_string(code.ptr),
+        .command => gp_c.do_string(code.ptr),
     }
 
     const term_output = try term_output_fifo.toOwnedSlice();
@@ -146,7 +147,7 @@ export fn exec(length: usize) TypstReturnType {
         const err_msg = blk: {
             switch (err) {
                 error.GnuplotError => {
-                    const gp_errmsg = gp.c.get_udv_by_name(@constCast("GPVAL_ERRMSG")).*.udv_value.v.string_val;
+                    const gp_errmsg = gp_c.get_udv_by_name(@constCast("GPVAL_ERRMSG")).*.udv_value.v.string_val;
                     break :blk std.mem.sliceTo(gp_errmsg, 0);
                 },
                 else => {

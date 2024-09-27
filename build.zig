@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub fn build(b: *std.Build) !void {
+pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{
         .default_target = .{
             .cpu_arch = .wasm32,
@@ -55,6 +55,7 @@ pub fn build(b: *std.Build) !void {
     const gnuplot = b.dependency("gnuplot", .{ .target = target, .optimize = optimize });
     const gnuplot_mod = gnuplot.module("gnuplot");
     exe.root_module.addImport("gnuplot", gnuplot_mod);
+    exe.root_module.addImport("gnuplot_c", gnuplot.module("c"));
 
     if (gnuplot.builder.lazyDependency("ruby_wasm_runtime", .{ .target = target, .optimize = optimize })) |ruby_wasm_runtime| {
         const ruby_wasm_runtime_mod = ruby_wasm_runtime.module("ruby_wasm_runtime");
@@ -70,7 +71,7 @@ pub fn build(b: *std.Build) !void {
     const zbor_mod = b.dependency("zbor", .{ .target = target, .optimize = optimize }).module("zbor");
     exe.root_module.addImport("zbor", zbor_mod);
 
-    b.resolveInstallPrefix(try b.build_root.join(b.allocator, &.{"pkg"}), .{});
+    b.resolveInstallPrefix(b.pathFromRoot("pkg"), .{});
     const install_exe = b.addInstallArtifact(exe, .{
         .dest_dir = .{ .override = .{ .custom = "" } },
     });
@@ -129,7 +130,9 @@ pub fn build(b: *std.Build) !void {
             "--enable-reference-types",
             "--enable-nontrapping-float-to-int",
             "--enable-sign-ext",
-            "--enable-simd",
+            // "--enable-simd",
+            "--enable-tail-call",
+            "--enable-extended-const",
             // Remove DWARF to avoid warnings and the fatal error in binaryen
             "--strip-dwarf",
         });
@@ -178,13 +181,10 @@ pub fn build(b: *std.Build) !void {
             "asyncify-ignore-indirect",
             // Indirect calls
             "-pa",
-            try std.mem.concat(b.allocator, u8, &.{
-                "asyncify-addlist@",
-                if (is_debug)
-                    "command,set_terminal,execute_at"
-                else
-                    "do_line,set_command,evaluate_at",
-            }),
+            "asyncify-addlist@" ++ if (is_debug)
+                "command,set_terminal,execute_at"
+            else
+                "do_line,set_command,evaluate_at",
         });
 
         run_wasm_opt.step.dependOn(stub_wasip1_step);

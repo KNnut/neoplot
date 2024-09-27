@@ -3,8 +3,8 @@
     .version = "6.1.0",
     .dependencies = .{
         .gnuplot = .{
-            .url = "https://github.com/salewski/gnuplot-main-mirror/archive/e9d5564c5f905388ef9f8a53fb61dfc91e0740af.tar.gz",
-            .hash = "1220cd7046c01ecfdc10439b798b6d6dc4da69a07afca299438e977fb39f3f6aecd7",
+            .url = "https://github.com/salewski/gnuplot-main-mirror/archive/926d2c26d31f4b69feda372c76a28643ef45359d.tar.gz",
+            .hash = "1220ff6f496a704e8b54b56129877c8ab5df4ee6fd3be83dcd38b3e6e69e5c8d1353",
         },
         .ruby_wasm_runtime = .{
             .path = "deps/ruby_wasm_runtime",

@@ -8,8 +8,8 @@ fn asyncify_stop_unwind() void {
 }
 
 extern fn rb_wasm_handle_jmp_unwind() ?*anyopaque;
-pub fn start(comptime func: anytype, args: anytype) @typeInfo(@TypeOf(func)).Fn.return_type.? {
-    const ReturnType = @typeInfo(@TypeOf(func)).Fn.return_type.?;
+pub fn start(comptime func: anytype, args: anytype) @typeInfo(@TypeOf(func)).@"fn".return_type.? {
+    const ReturnType = @typeInfo(@TypeOf(func)).@"fn".return_type.?;
     var result: ReturnType = undefined;
 
     while (true) {
