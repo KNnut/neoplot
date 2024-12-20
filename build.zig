@@ -5,16 +5,31 @@ pub fn build(b: *std.Build) void {
         .default_target = .{
             .cpu_arch = .wasm32,
             .os_tag = .wasi,
+            .cpu_features_add = std.Target.wasm.featureSet(&.{
+                .bulk_memory,
+                .multivalue,
+                .mutable_globals,
+                .reference_types,
+                .nontrapping_fptoint,
+                .sign_ext,
+                // binaryen: tail calls not yet supported in asyncify
+                // .tail_call,
+                .extended_const,
+            }),
         },
     });
     const optimize = b.standardOptimizeOption(.{});
     const is_debug = optimize == .Debug;
 
-    const exe = b.addExecutable(.{
-        .name = "neoplot",
+    const mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
+    });
+
+    const exe = b.addExecutable(.{
+        .name = "neoplot",
+        .root_module = mod,
     });
     exe.entry = .disabled;
     exe.rdynamic = true;
@@ -45,7 +60,7 @@ pub fn build(b: *std.Build) void {
     ) orelse true;
 
     if (!is_debug) {
-        exe.root_module.unwind_tables = false;
+        exe.root_module.unwind_tables = .none;
         exe.root_module.single_threaded = true;
     }
 
@@ -131,7 +146,7 @@ pub fn build(b: *std.Build) void {
             "--enable-nontrapping-float-to-int",
             "--enable-sign-ext",
             // "--enable-simd",
-            "--enable-tail-call",
+            // "--enable-tail-call",
             "--enable-extended-const",
             // Remove DWARF to avoid warnings and the fatal error in binaryen
             "--strip-dwarf",
