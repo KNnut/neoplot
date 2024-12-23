@@ -3,12 +3,10 @@ const gp = @import("gnuplot");
 const gp_c = @import("gnuplot_c");
 const cbor = @import("zbor");
 const ruby_wasm_runtime = @import("ruby_wasm_runtime");
+const typst = @import("typst.zig");
 
 const allocator = std.heap.c_allocator;
 const Fifo = std.fifo.LinearFifo(u8, .Dynamic);
-
-extern "typst_env" fn wasm_minimal_protocol_send_result_to_host(ptr: [*]const u8, len: usize) void;
-extern "typst_env" fn wasm_minimal_protocol_write_args_to_buffer(ptr: [*]u8) void;
 
 export fn signal(_: i32, _: i32) i32 {
     return 0;
@@ -25,11 +23,6 @@ export fn tmpfile() ?*gp_c.FILE {
     return gp_c.fopencookie(&tmp_fifo, "w+", gp.fifoCookieFn(Fifo));
 }
 
-const TypstReturnType = enum(i32) {
-    success,
-    failure,
-};
-
 const CallType = enum {
     script,
     command,
@@ -43,13 +36,14 @@ const Status = enum {
 var status: Status = .idle;
 fn call(code: [:0]const u8, @"type": CallType) !void {
     const log = std.log.scoped(.call);
+    // Reset `status` to `idle` after this call
     defer status = .idle;
 
     // Always inline `init` function to avoid stack smashing
     @call(.always_inline, gp.init, .{"svg"});
     log.debug("status={s}", .{@tagName(status)});
     // `init` function has a jump
-    // `busy` is `true` means an error
+    // `status` is `busy` here if and only if there is an error
     if (status == .busy) return error.GnuplotError;
     status = .busy;
 
@@ -109,7 +103,7 @@ fn call(code: [:0]const u8, @"type": CallType) !void {
     const result = try result_fifo.toOwnedSlice();
     defer allocator.free(result);
 
-    wasm_minimal_protocol_send_result_to_host(result.ptr, result.len);
+    typst.send(result);
 }
 
 fn bridge(length: usize) !void {
@@ -118,7 +112,7 @@ fn bridge(length: usize) !void {
     const buf = try allocator.alloc(u8, length);
     defer allocator.free(buf);
 
-    wasm_minimal_protocol_write_args_to_buffer(buf.ptr);
+    typst.receive(buf);
 
     const data_item = try cbor.DataItem.new(buf);
     const arg = try cbor.parse(struct {
@@ -136,7 +130,7 @@ fn bridge(length: usize) !void {
     try ruby_wasm_runtime.start(call, .{ arg.code, arg.type });
 }
 
-export fn exec(length: usize) TypstReturnType {
+export fn exec(length: usize) typst.ReturnType {
     const log = std.log.scoped(.exec);
 
     // Do nothing when length is 0
@@ -144,19 +138,17 @@ export fn exec(length: usize) TypstReturnType {
 
     bridge(length) catch |err| {
         var buf: [32]u8 = undefined;
-        const err_msg = blk: {
-            switch (err) {
-                error.GnuplotError => {
-                    const gp_errmsg = gp_c.get_udv_by_name(@constCast("GPVAL_ERRMSG")).*.udv_value.v.string_val;
-                    break :blk std.mem.sliceTo(gp_errmsg, 0);
-                },
-                else => {
-                    break :blk std.fmt.bufPrint(&buf, "{}", .{err}) catch "Error message is too long";
-                },
-            }
+        const err_msg = blk: switch (err) {
+            error.GnuplotError => {
+                const gp_errmsg = gp_c.get_udv_by_name(@constCast("GPVAL_ERRMSG")).*.udv_value.v.string_val;
+                break :blk std.mem.sliceTo(gp_errmsg, 0);
+            },
+            else => {
+                break :blk std.fmt.bufPrint(&buf, "{}", .{err}) catch "Error message is too long";
+            },
         };
         log.debug("error message={s}", .{err_msg});
-        wasm_minimal_protocol_send_result_to_host(err_msg.ptr, err_msg.len);
+        typst.send(err_msg);
         return .failure;
     };
 
