@@ -2,10 +2,6 @@ const std = @import("std");
 const c = @import("c");
 const ruby_wasm_runtime = @import("ruby_wasm_runtime");
 
-export fn interrupt_setup() void {}
-export fn gp_expand_tilde(_: i32) void {}
-export fn restrict_popen() void {}
-
 pub var command_line_env = std.mem.zeroes(c.JMP_BUF);
 export fn bail_to_command_line() noreturn {
     if (c.fit_env) |fit_env| {

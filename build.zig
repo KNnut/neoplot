@@ -100,7 +100,7 @@ pub fn build(b: *std.Build) !void {
     const libgnuplot = ziguplot_dep.artifact("libgnuplot");
     libgnuplot.linkLibrary(ruby_wasm_runtime_dep.artifact("ruby_wasm_runtime"));
     libgnuplot.addCSourceFile(.{
-        .file = b.path("src/stub.c"),
+        .file = b.path("src/gp_stub.c"),
         .flags = &.{"-std=c23"},
     });
     if (stub_wasi)
