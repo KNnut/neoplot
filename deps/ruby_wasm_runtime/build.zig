@@ -1,13 +1,16 @@
 const std = @import("std");
 
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
-    if (!target.result.isWasm())
-        @panic("Unsupported target.");
+    if (!target.result.isWasm()) {
+        std.debug.print("The target should be wasm but is {s}.\n", .{@tagName(target.result.os.tag)});
+        return error.InvalidOS;
+    }
 
     const optimize = b.standardOptimizeOption(.{});
 
-    const lib = b.addStaticLibrary(.{
+    const lib = b.addLibrary(.{
+        .linkage = .static,
         .name = "ruby_wasm_runtime",
         .root_module = b.createModule(.{
             .target = target,

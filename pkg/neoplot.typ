@@ -1,4 +1,5 @@
 #let gp = plugin("neoplot.wasm")
+#let gp-exec = plugin.transition(gp.init).exec
 
 #let get-text(it) = {
     if type(it) == str {
@@ -14,7 +15,7 @@
     }
 }
 
-#let get-svg-image(..args) = image.decode(format: "svg", ..args)
+#let get-svg-image(..args) = image(format: "svg", ..args)
 
 #let bridge(code, kind) = {
     let arg = cbor.encode(
@@ -23,18 +24,11 @@
             type: kind,
         )
     )
-    let output = gp.exec(arg)
-    let (
-        print_output: print-output,
-        term_output: term-output,
-    ) = cbor.decode(output)
-    (
-        print-output,
-        term-output,
-    )
+    let output = gp-exec(arg)
+    cbor(output)
 }
 
-#let term-format = ("image", "string", "bytes")
+#let image-format = ("image", "string", "bytes")
 
 #let exec(
     it,
@@ -54,14 +48,11 @@
     }
     if format == auto {
         return {
-            let (
-                print-output,
-                term-output,
-            ) = bridge(code, kind)
-            if term-output != none {
-                get-svg-image(term-output.last(), ..args)
-            } else if print-output != none {
-                str(print-output)
+            let output = bridge(code, kind)
+            if output.images != none {
+                get-svg-image(output.images.last(), ..args)
+            } else if output.print != none {
+                str(output.print)
             }
         }
     }
@@ -78,31 +69,28 @@
         }
     }).dedup()
     for fmt in format {
-        if fmt not in ("print", ..term-format) {
+        if fmt not in ("print", ..image-format) {
             panic("Invalid format `" + fmt + "`")
         }
     }
 
     let result = (:)
     for fmt in format {
-        let (
-            print-output,
-            term-output,
-        ) = bridge(code, kind)
+        let output = bridge(code, kind)
         result.insert(fmt,
-            if fmt in term-format and term-output == none {
-                panic("No terminal output")
+            if fmt in image-format and output.images == none {
+                panic("No image output")
             } else if fmt == "image" {
-                term-output.map(data => get-svg-image(data, ..args))
+                output.images.map(data => get-svg-image(data, ..args))
             } else if fmt == "string" {
-                term-output.map(str)
+                output.images.map(str)
             } else if fmt == "bytes" {
-                term-output
+                output.images
             } else if fmt == "print" {
-                if print-output == none {
+                if output.print == none {
                     panic("No print output")
                 }
-                str(print-output)
+                str(output.print)
             }
         )
     }
