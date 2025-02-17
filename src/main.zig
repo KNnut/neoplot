@@ -1,16 +1,9 @@
 const std = @import("std");
-const build_options = @import("build_options");
 const cbor = @import("zbor");
 const zgp = @import("zgp");
 const typst = @import("typst.zig");
-const ruby_wasm_runtime = @import("ruby_wasm_runtime");
 const Gnuplot = @import("Gnuplot.zig");
-
-const mem = std.mem;
-const Allocator = mem.Allocator;
-
 const raw_c_allocator = @import("alloc.zig").raw_c_allocator;
-const Fifo = std.fifo.LinearFifo(u8, .Dynamic);
 
 const Input = struct {
     code: [:0]const u8,
