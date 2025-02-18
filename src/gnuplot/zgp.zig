@@ -69,6 +69,13 @@ pub fn init(term: [:0]const u8) void {
     c.sm_palette = std.mem.zeroes(c.t_sm_palette);
 
     c.init_fit();
+    // Make fit verbosity level quiet by default
+    c.fit_verbosity = c.QUIET;
+    // Suppress fit log by default
+    c.fit_suppress_log = true;
+    // Disable floating point exception
+    // c.df_nofpe_trap = true;
+
     c.init_gadgets();
 
     init_term(term);
