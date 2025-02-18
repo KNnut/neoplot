@@ -127,9 +127,6 @@ fn innerCall(code: [:0]const u8, call_type: CallType) !void {
 }
 
 pub fn call(self: *Gnuplot, code: [:0]const u8, call_type: CallType) !void {
-    // Disable floating point exception
-    // gp_c.df_nofpe_trap = true;
-
     // Redirect the output of graphics devices
     var terminal_fifo = Fifo.init(self.arena);
     gp_c.gpoutfile = gp_c.fopencookie(&terminal_fifo, "w", .{ .write = zgp.fifoCookieFn(Fifo).write });
