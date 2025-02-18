@@ -6,6 +6,8 @@ jobs:
       matrix:
         optimize: [Debug, ReleaseSafe, ReleaseFast, ReleaseSmall]
     runs-on: macos-latest
+    env:
+      TYPST_VERSION: 0.13.0-rc1
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -13,7 +15,14 @@ jobs:
       - name: Install dependencies
         run: |
           brew update
-          brew install binaryen typst
+          brew install binaryen
+
+      - name: Install Typst
+        run: |
+          curl -Lo ${RUNNER_TEMP}/typst.tar.xz https://github.com/typst/typst/releases/download/v$TYPST_VERSION/typst-aarch64-apple-darwin.tar.xz
+          mkdir "$HOME/.local/bin"
+          bsdtar xf ${RUNNER_TEMP}/typst.tar.xz --strip-components=1 -C "$HOME/.local/bin" */typst
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Setup zig
         uses: mlugg/setup-zig@v1
@@ -22,7 +31,7 @@ jobs:
 
       - name: Build
         run: zig build -Doptimize=${{ matrix.optimize }}
-      
+
       - name: Test
         run: |
           cd pkg

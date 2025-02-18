@@ -20,15 +20,13 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
     const is_debug = optimize == .Debug;
 
-    const mod = b.createModule(.{
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-
     const exe = b.addExecutable(.{
         .name = "neoplot",
-        .root_module = mod,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/main.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
     exe.entry = .disabled;
     exe.rdynamic = true;
@@ -131,17 +129,11 @@ pub fn build(b: *std.Build) !void {
     translate_c.defineCMacro("HAVE_CONFIG_H", null);
 
     translate_c.addIncludePath(ruby_wasm_runtime_dep.path("src"));
-
-    for (libgnuplot.root_module.include_dirs.items) |item| {
+    for (libgnuplot.root_module.include_dirs.items) |item|
         try translate_c.include_dirs.append(item);
-        if (item == .path)
-            item.path.addStepDependencies(&translate_c.step);
-        if (item == .config_header_step)
-            translate_c.step.dependOn(&item.config_header_step.step);
-    }
+    translate_c.step.dependOn(&libgnuplot.step);
 
     const translate_c_mod = translate_c.createModule();
-
     zgp_mod.addImport("c", translate_c_mod);
     exe.root_module.addImport("gp_c", translate_c_mod);
 
