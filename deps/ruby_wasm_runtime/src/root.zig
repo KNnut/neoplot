@@ -1,4 +1,4 @@
-const asyncify_start_rewind = @extern(*const fn (buf: ?*anyopaque) callconv(.C) void, .{ .name = "start_rewind", .library_name = "asyncify" });
+const asyncify_start_rewind = @extern(*const fn (buf: ?*anyopaque) callconv(.c) void, .{ .name = "start_rewind", .library_name = "asyncify" });
 
 extern "asyncify" fn stop_unwind() void;
 fn asyncify_stop_unwind() void {

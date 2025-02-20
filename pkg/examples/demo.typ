@@ -101,7 +101,7 @@ splot [-2:1][-1.5:1.5] mand({0,0},compl(x,y),30)
     caption: "surface1.dem",
 )
 
-Notice that Typst caches the results for WASM functions:
+Notice that Typst caches the results for Wasm functions:
 ```typ
 #gp.exec("reset")                   // Will be executed
 #gp.exec(kind: "command", "reset")  // Will be executed

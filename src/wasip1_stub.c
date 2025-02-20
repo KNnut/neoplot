@@ -1,12 +1,9 @@
 #include <wasi/api.h>
 
-int32_t __imported_wasi_snapshot_preview1_environ_get(int32_t, int32_t) {
-    return __WASI_ERRNO_SUCCESS;
-}
-
-int32_t __imported_wasi_snapshot_preview1_environ_sizes_get(__wasi_size_t* retptr0, __wasi_size_t* retptr1) {
-    *retptr0 = 0;
-    return __WASI_ERRNO_SUCCESS;
+// wasi_snapshot_preview1_environ_get
+// wasi_snapshot_preview1_environ_sizes_get
+char *getenv(const char *) {
+    return 0;
 }
 
 int32_t __imported_wasi_snapshot_preview1_clock_time_get(int32_t, int64_t, int32_t) {
@@ -46,18 +43,24 @@ int32_t __imported_wasi_snapshot_preview1_fd_write(int32_t, int32_t, int32_t, in
 }
 
 int32_t __imported_wasi_snapshot_preview1_path_filestat_get(int32_t, int32_t, int32_t, int32_t, int32_t) {
-    return __WASI_ERRNO_SUCCESS;
+    return __WASI_ERRNO_BADF;
 }
 
 int32_t __imported_wasi_snapshot_preview1_path_open(int32_t, int32_t, int32_t, int32_t, int32_t, int64_t, int64_t, int32_t, int32_t) {
-    return __WASI_ERRNO_SUCCESS;
+    return __WASI_ERRNO_BADF;
 }
 
-int32_t __imported_wasi_snapshot_preview1_poll_oneoff(int32_t, int32_t, int32_t, int32_t) {
-    return __WASI_ERRNO_SUCCESS;
+// wasi_snapshot_preview1_poll_oneoff
+int usleep(unsigned long) {
+    return 0;
 }
 
-_Noreturn void __imported_wasi_snapshot_preview1_proc_exit(int32_t) { }
+// wasi_snapshot_preview1_proc_exit
+_Noreturn void _Exit(int) { }
+
+int32_t __imported_wasi_snapshot_preview1_sched_yield() {
+    return __WASI_ERRNO_SUCCESS;
+}
 
 int32_t __imported_wasi_snapshot_preview1_random_get(int32_t, int32_t) {
     return __WASI_ERRNO_SUCCESS;
