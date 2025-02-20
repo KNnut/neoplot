@@ -24,11 +24,6 @@ pub const CallType = enum {
     command,
 };
 
-const Status = enum {
-    idle,
-    busy,
-};
-
 const GnuplotOutput = struct {
     arena: Allocator,
     terminal: ?[]const u8,

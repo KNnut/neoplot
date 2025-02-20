@@ -4,8 +4,8 @@
 
     .dependencies = .{
         .ziguplot = .{
-            .url = "https://github.com/KNnut/ziguplot/archive/7f13b5d3b01c88bdde70ab2371c3aa9beb9106b3.tar.gz",
-            .hash = "1220e60556b905e5d4843ddfdacb8b7d0e57d154ae0c266ba5400c280ef2ddbc2552",
+            .url = "https://github.com/KNnut/ziguplot/archive/5ee05d6ad70ee7f0f1d780f1ef1f99079fdca598.tar.gz",
+            .hash = "12209e294d374a3bf75ba5b3d56d5b00d6f3d9d7d0c0ade237edc7bce65506bbcc0d",
         },
         .zbor = .{
             .url = "https://github.com/r4gus/zbor/archive/8f4a9304eb3237f1fac82edbc4d7f702b7bbea72.tar.gz",
