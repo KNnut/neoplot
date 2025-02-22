@@ -58,12 +58,16 @@
     }
 
     format = (format,).flatten().map(fmt => {
-        if fmt == image {
-            "image"
-        } else if fmt in (str, "str") {
-            "string"
-        } else if fmt == bytes {
-            "bytes"
+        if type(fmt) == type {
+            if fmt == image {
+                "image"
+            } else if fmt == str {
+                "string"
+            } else if fmt == bytes {
+                "bytes"
+            } else {
+                fmt
+            }
         } else {
             fmt
         }

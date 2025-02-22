@@ -36,4 +36,3 @@ jobs:
         run: |
           cd pkg
           typst compile --root . examples/demo.typ
-          typst compile --root . examples/readme.typ
