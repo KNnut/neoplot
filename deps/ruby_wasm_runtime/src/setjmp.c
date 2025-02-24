@@ -23,7 +23,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <stdbool.h>
 #include "asyncify.h"
 #include "setjmp.h"
 
@@ -124,68 +123,6 @@ _rb_wasm_longjmp(rb_wasm_jmp_buf* env, int value)
     _rb_wasm_active_jmpbuf = env;
     async_buf_init(env->longjmp_buf_ptr);
     asyncify_start_unwind(env->longjmp_buf_ptr);
-}
-
-
-enum try_catch_phase {
-  TRY_CATCH_PHASE_MAIN   = 0,
-  TRY_CATCH_PHASE_RESCUE = 1,
-};
-
-void
-rb_wasm_try_catch_init(struct rb_wasm_try_catch *try_catch,
-                       rb_wasm_try_catch_func_t try_f,
-                       rb_wasm_try_catch_func_t catch_f,
-                       void *context)
-{
-    try_catch->state = TRY_CATCH_PHASE_MAIN;
-    try_catch->try_f = try_f;
-    try_catch->catch_f = catch_f;
-    try_catch->context = context;
-}
-
-// NOTE: This function is not processed by Asyncify due to a call of asyncify_stop_rewind
-void
-rb_wasm_try_catch_loop_run(struct rb_wasm_try_catch *try_catch, rb_wasm_jmp_buf *target)
-{
-    extern void *rb_asyncify_unwind_buf;
-    extern rb_wasm_jmp_buf *_rb_wasm_active_jmpbuf;
-
-    target->state = JMP_BUF_STATE_CAPTURED;
-
-    switch ((enum try_catch_phase)try_catch->state) {
-    case TRY_CATCH_PHASE_MAIN:
-        // may unwind
-        try_catch->try_f(try_catch->context);
-        break;
-    case TRY_CATCH_PHASE_RESCUE:
-        if (try_catch->catch_f) {
-            // may unwind
-            try_catch->catch_f(try_catch->context);
-        }
-        break;
-    }
-
-    {
-        // catch longjmp with target jmp_buf
-        while (rb_asyncify_unwind_buf && _rb_wasm_active_jmpbuf == target) {
-            // do similar steps setjmp does when JMP_BUF_STATE_RETURNING
-
-            // stop unwinding
-            // (but call stop_rewind to update the asyncify state to "normal" from "unwind")
-            asyncify_stop_rewind();
-            // clear the active jmpbuf because it's already stopped
-            _rb_wasm_active_jmpbuf = NULL;
-            // reset jmpbuf state to be able to unwind again
-            target->state = JMP_BUF_STATE_CAPTURED;
-            // move to catch loop phase
-            try_catch->state = TRY_CATCH_PHASE_RESCUE;
-            if (try_catch->catch_f) {
-                try_catch->catch_f(try_catch->context);
-            }
-        }
-        // no unwind or unrelated unwind, then exit
-    }
 }
 
 void *

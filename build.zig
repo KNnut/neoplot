@@ -1,45 +1,52 @@
 const std = @import("std");
 
-pub fn build(b: *std.Build) void {
-    const target = b.standardTargetOptions(.{
-        .default_target = .{
-            .cpu_arch = .wasm32,
-            .os_tag = .wasi,
-            .cpu_features_add = std.Target.wasm.featureSet(&.{
-                .bulk_memory,
-                .multivalue,
-                .mutable_globals,
-                .reference_types,
-                .nontrapping_fptoint,
-                .sign_ext,
-                // binaryen: tail calls not yet supported in asyncify
-                // .tail_call,
-                .extended_const,
-            }),
+pub fn build(b: *std.Build) !void {
+    const target = b.resolveTargetQuery(.{
+        .cpu_arch = .wasm32,
+        .os_tag = .wasi,
+        .cpu_model = .{
+            .explicit = &std.Target.wasm.cpu.lime1,
         },
+        .cpu_features_add = std.Target.wasm.featureSet(&.{
+            .bulk_memory,
+            .reference_types,
+            // Not supported by Asyncify
+            // .tail_call,
+            // Not supported by Safari
+            // .multimemory,
+        }),
     });
+
     const optimize = b.standardOptimizeOption(.{});
     const is_debug = optimize == .Debug;
 
-    const mod = b.createModule(.{
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-
     const exe = b.addExecutable(.{
         .name = "neoplot",
-        .root_module = mod,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/main.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
     exe.entry = .disabled;
     exe.rdynamic = true;
     exe.wasi_exec_model = .reactor;
 
+    const has_typst_env: bool = b.option(
+        bool,
+        "typst-env",
+        "Build for Typst environment",
+    ) orelse true;
+
+    const exe_options = b.addOptions();
+    exe_options.addOption(bool, "has_typst_env", has_typst_env);
+    exe.root_module.addOptions("build_options", exe_options);
+
     const strip: ?bool = b.option(
         bool,
         "strip",
         "Remove debug information",
-    ) orelse null;
+    );
 
     const stub_wasi = b.option(
         bool,
@@ -47,89 +54,93 @@ pub fn build(b: *std.Build) void {
         "Stub WASI functions",
     ) orelse true;
 
-    const wasi_stub = b.option(
-        bool,
-        "wasi-stub",
-        "Use wasi-stub to stub WASI Preview 1 functions",
-    ) orelse false;
-
     const wasm_opt = b.option(
         bool,
         "wasm-opt",
-        "Use wasm-opt (in binaryen) to make Asyncify work and optimize the WASM binary",
+        "Use wasm-opt (in binaryen) to make Asyncify work and optimize the Wasm binary",
+    ) orelse true;
+
+    const mimalloc: bool = b.option(
+        bool,
+        "mimalloc",
+        "Enable mimalloc",
     ) orelse true;
 
     if (!is_debug) {
+        exe.want_lto = true;
         exe.root_module.unwind_tables = .none;
-        exe.root_module.single_threaded = true;
     }
 
     if (strip) |s|
         exe.root_module.strip = s;
 
-    const gnuplot = b.dependency("gnuplot", .{ .target = target, .optimize = optimize });
-    const gnuplot_mod = gnuplot.module("gnuplot");
-    exe.root_module.addImport("gnuplot", gnuplot_mod);
-    exe.root_module.addImport("gnuplot_c", gnuplot.module("c"));
+    const ziguplot_dep = b.dependency("ziguplot", .{
+        .target = target,
+        .optimize = optimize,
+        .mimalloc = mimalloc,
+    });
 
-    if (gnuplot.builder.lazyDependency("ruby_wasm_runtime", .{ .target = target, .optimize = optimize })) |ruby_wasm_runtime| {
-        const ruby_wasm_runtime_mod = ruby_wasm_runtime.module("ruby_wasm_runtime");
-        exe.root_module.addImport("ruby_wasm_runtime", ruby_wasm_runtime_mod);
-    }
+    const zbor_dep = b.dependency("zbor", .{ .target = target, .optimize = optimize });
+    exe.root_module.addImport("zbor", zbor_dep.module("zbor"));
 
+    const ruby_wasm_runtime_dep = b.dependency("ruby_wasm_runtime", .{ .target = target, .optimize = optimize });
+    const ruby_wasm_runtime_mod = ruby_wasm_runtime_dep.module("ruby_wasm_runtime");
+    exe.root_module.addImport("ruby_wasm_runtime", ruby_wasm_runtime_mod);
+
+    const zgp_mod = b.createModule(.{
+        .root_source_file = b.path("src/gnuplot/zgp.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    zgp_mod.addImport("ruby_wasm_runtime", ruby_wasm_runtime_mod);
+    exe.root_module.addImport("zgp", zgp_mod);
+
+    const libgnuplot = ziguplot_dep.artifact("libgnuplot");
+    libgnuplot.linkLibrary(ruby_wasm_runtime_dep.artifact("ruby_wasm_runtime"));
+    libgnuplot.addCSourceFile(.{
+        .file = b.path("src/gp_stub.c"),
+        .flags = &.{"-std=c23"},
+    });
     if (stub_wasi)
-        gnuplot_mod.addCSourceFile(.{
-            .file = b.path("src/stub.c"),
+        libgnuplot.addCSourceFile(.{
+            .file = b.path("src/wasip1_stub.c"),
             .flags = &.{"-std=c23"},
         });
+    exe.linkLibrary(libgnuplot);
 
-    const zbor_mod = b.dependency("zbor", .{ .target = target, .optimize = optimize }).module("zbor");
-    exe.root_module.addImport("zbor", zbor_mod);
+    const gnuplot_h_wf = b.addWriteFiles();
+    const gnuplot_h = gnuplot_h_wf.add("gnuplot.h",
+        \\#include "setshow.h"
+        \\#include "fit.h"
+        \\#include "gadgets.h"
+        \\#include "voxelgrid.h"
+        \\#include "term_api.h"
+        \\#include "misc.h"
+        \\#include "command.h"
+        \\#include "datafile.h"
+    );
+
+    const translate_c = b.addTranslateC(.{
+        .root_source_file = gnuplot_h,
+        .target = target,
+        .optimize = optimize,
+    });
+    translate_c.defineCMacro("_GNU_SOURCE", null);
+    translate_c.defineCMacro("HAVE_CONFIG_H", null);
+
+    translate_c.addIncludePath(ruby_wasm_runtime_dep.path("src"));
+    for (libgnuplot.root_module.include_dirs.items) |item|
+        try translate_c.include_dirs.append(item);
+    translate_c.step.dependOn(&libgnuplot.step);
+
+    const translate_c_mod = translate_c.createModule();
+    zgp_mod.addImport("c", translate_c_mod);
+    exe.root_module.addImport("gp_c", translate_c_mod);
 
     b.resolveInstallPrefix(b.pathFromRoot("pkg"), .{});
     const install_exe = b.addInstallArtifact(exe, .{
         .dest_dir = .{ .override = .{ .custom = "" } },
     });
-
-    const stub_wasip1_step = if (wasi_stub) blk: {
-        const errno_t = std.os.wasi.errno_t;
-        const stub_fd_write = b.addSystemCommand(&.{
-            "wasi-stub",
-            "--stub-function",
-            "wasi_snapshot_preview1:fd_write",
-            "-r",
-            b.fmt("{d}", .{@intFromEnum(errno_t.NOTCAPABLE)}),
-        });
-        stub_fd_write.addArtifactArg(exe);
-        stub_fd_write.addArg("-o");
-        stub_fd_write.addArtifactArg(exe);
-        stub_fd_write.step.dependOn(&install_exe.step);
-
-        const stub_fd_prestat_get = b.addSystemCommand(&.{
-            "wasi-stub",
-            "--stub-function",
-            "wasi_snapshot_preview1:fd_prestat_get",
-            "-r",
-            b.fmt("{d}", .{@intFromEnum(errno_t.BADF)}),
-        });
-        stub_fd_prestat_get.addArtifactArg(exe);
-        stub_fd_prestat_get.addArg("-o");
-        stub_fd_prestat_get.addArtifactArg(exe);
-        stub_fd_prestat_get.step.dependOn(&stub_fd_write.step);
-
-        const stub_wasip1 = b.addSystemCommand(&.{
-            "wasi-stub",
-            "--stub-module",
-            "wasi_snapshot_preview1",
-            "-r",
-            b.fmt("{d}", .{@intFromEnum(errno_t.SUCCESS)}),
-        });
-        stub_wasip1.addArtifactArg(exe);
-        stub_wasip1.addArg("-o");
-        stub_wasip1.addArtifactArg(exe);
-        stub_wasip1.step.dependOn(&stub_fd_prestat_get.step);
-        break :blk &stub_wasip1.step;
-    } else &install_exe.step;
 
     const opt_wasm_step = if (wasm_opt) blk: {
         // Keep function names for Asyncify lists
@@ -146,6 +157,7 @@ pub fn build(b: *std.Build) void {
             "--enable-nontrapping-float-to-int",
             "--enable-sign-ext",
             // "--enable-simd",
+            // Not supported by Asyncify
             // "--enable-tail-call",
             "--enable-extended-const",
             // Remove DWARF to avoid warnings and the fatal error in binaryen
@@ -196,15 +208,15 @@ pub fn build(b: *std.Build) void {
             "asyncify-ignore-indirect",
             // Indirect calls
             "-pa",
-            "asyncify-addlist@" ++ if (is_debug)
-                "command,set_terminal,execute_at"
+            if (is_debug)
+                "asyncify-addlist@command,set_terminal,execute_at"
             else
-                "do_line,set_command,evaluate_at",
+                "asyncify-addlist@step_through_line,set_command,evaluate_at",
         });
 
-        run_wasm_opt.step.dependOn(stub_wasip1_step);
+        run_wasm_opt.step.dependOn(&install_exe.step);
         break :blk &run_wasm_opt.step;
-    } else stub_wasip1_step;
+    } else &install_exe.step;
 
     b.getInstallStep().dependOn(opt_wasm_step);
 }
