@@ -1,15 +1,15 @@
 .{
-    .name = "neoplot",
+    .name = .neoplot,
     .version = "0.0.3",
 
     .dependencies = .{
         .ziguplot = .{
-            .url = "https://github.com/KNnut/ziguplot/archive/5ee05d6ad70ee7f0f1d780f1ef1f99079fdca598.tar.gz",
-            .hash = "12209e294d374a3bf75ba5b3d56d5b00d6f3d9d7d0c0ade237edc7bce65506bbcc0d",
+            .url = "https://github.com/KNnut/ziguplot/archive/46829dcb3f8dab691df8541dd87a0d571df62e05.tar.gz",
+            .hash = "ziguplot-0.0.1-HLJdxz-JAACx8ghZjOWHjCkTCdWMdJZ63CZnCqAGm1jH",
         },
         .zbor = .{
-            .url = "https://github.com/r4gus/zbor/archive/8f4a9304eb3237f1fac82edbc4d7f702b7bbea72.tar.gz",
-            .hash = "122064b84c25438d82db08b353143c44d7972571e51155c140db700aaee7411c741a",
+            .url = "https://github.com/r4gus/zbor/archive/2377933da08f0e00e824cc7cf38297dda4168115.tar.gz",
+            .hash = "zbor-0.17.0-kr-CoKYiAwCQIET-KWtEqV4KvekuT2-lHSPUS50rHN33",
         },
         .ruby_wasm_runtime = .{
             .path = "deps/ruby_wasm_runtime",
@@ -22,4 +22,6 @@
         "deps",
         "src",
     },
+
+    .fingerprint = 0x9a41c626e0641c0f,
 }
