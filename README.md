@@ -13,15 +13,15 @@ A Typst package to use [gnuplot](http://www.gnuplot.info/) in Typst.
 Execute a gnuplot script:
 ````typ
 #gp.exec(
-    ```gnuplot
-    # Remember to `reset`
-    reset
-    # Can add comments since it is a script
-    set samples 1000
-    # Use a backslash to extend commands
-    plot sin(x), \
-         cos(x)
-    ```
+  ```gnuplot
+  # Remember to `reset`
+  reset
+  # Can add comments since it is a script
+  set samples 1000
+  # Use a backslash to extend commands
+  plot sin(x), \
+       cos(x)
+  ```
 )
 ````
 
@@ -36,27 +36,27 @@ Read a data file:
 
 ````typ
 #gp.exec(
-    ```gnuplot
-    reset
-    $data <<EOD
-    0  0
-    2  4
-    4  0
-    EOD
-    plot $data with lines
-    ```
+  ```gnuplot
+  reset
+  $data <<EOD
+  0  0
+  2  4
+  4  0
+  EOD
+  plot $data with lines
+  ```
 )
 ````
 
 or
 ```typ
 #gp.exec(
-    // Use a datablock since Typst doesn't support WASI
-    "reset; $data <<EOD\n" +
-    // Load "datafile.dat" using Typst
-    read("datafile.dat") +
-    "EOD\n" +
-    "plot $data with lines"
+  // Use a datablock since Typst doesn't support WASI
+  "reset; $data <<EOD\n" +
+  // Load "datafile.dat" using Typst
+  read("datafile.dat") +
+  "EOD\n" +
+  "plot $data with lines"
 )
 ```
 
@@ -68,18 +68,18 @@ A simple example:
 #import "@preview/neoplot:0.0.3" as gp
 
 #figure(
-    gp.exec(
-        // Set the width of the graph
-        width: 55%,
-        ```gnuplot
-        reset
-        set term svg size 500,400
-        set xrange[-2.5*pi:2.5*pi]
-        set yrange[-1.3:1.3]
-        plot sin(x), cos(x)
-        ```
-    ),
-    caption: "Graphs of Sine and Cosine",
+  gp.exec(
+    // Set the width of the graph
+    width: 55%,
+    ```gnuplot
+    reset
+    set term svg size 500,400
+    set xrange[-2.5*pi:2.5*pi]
+    set yrange[-1.3:1.3]
+    plot sin(x), cos(x)
+    ```
+  ),
+  caption: "Graphs of Sine and Cosine",
 )
 ````
 

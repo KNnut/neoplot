@@ -1,0 +1,30 @@
+name: Format
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  fmt:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install typstyle
+
+      - name: Setup zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: master
+
+      - name: Check formatting with typstyle
+        run: |
+          shopt -s globstar
+          typstyle --check **/*.typ
+
+      - name: Check formatting with zig fmt
+        run: |
+          shopt -s globstar
+          zig fmt --check **/*.{zig,zon}
