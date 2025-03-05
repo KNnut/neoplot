@@ -4,7 +4,7 @@ permissions:
   contents: read
 jobs:
   fmt:
-    runs-on: ubuntu-24.04-arm
+    runs-on: macos-latest
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
