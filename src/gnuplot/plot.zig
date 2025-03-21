@@ -2,8 +2,14 @@ const std = @import("std");
 const c = @import("c");
 const ruby_wasm_runtime = @import("ruby_wasm_runtime");
 
+comptime {
+    @export(&bailToCommandLine, .{ .name = "bail_to_command_line", .visibility = .hidden });
+    @export(&initConstants, .{ .name = "init_constants", .visibility = .hidden });
+    @export(&initSession, .{ .name = "init_session", .visibility = .hidden });
+}
+
 pub var command_line_env = std.mem.zeroes(c.JMP_BUF);
-export fn bail_to_command_line() noreturn {
+fn bailToCommandLine() callconv(.c) noreturn {
     if (c.fit_env) |fit_env| {
         c._rb_wasm_longjmp(fit_env, c.TRUE);
     } else {
@@ -12,7 +18,7 @@ export fn bail_to_command_line() noreturn {
     unreachable;
 }
 
-pub export fn init_constants() void {
+pub fn initConstants() callconv(.c) void {
     _ = c.Gcomplex(&c.udv_pi.udv_value, std.math.pi, 0.0);
 
     c.udv_I = c.get_udv_by_name(@constCast("I"));
@@ -22,7 +28,7 @@ pub export fn init_constants() void {
     _ = c.Gcomplex(&c.udv_NaN.*.udv_value, c.not_a_number(), 0.0);
 }
 
-pub export fn init_session() void {
+pub fn initSession() callconv(.c) void {
     c.del_udv_by_name(@constCast(""), true);
 
     while (c.first_perm_linestyle != null)

@@ -1,21 +1,7 @@
+#import "utils.typ": get-text, get-svg-image, get-svg-array
+
 #let gp = plugin("neoplot.wasm")
 #let gp-exec = plugin.transition(gp.init).exec
-
-#let get-text(it) = {
-  if type(it) == str {
-    it
-  } else if type(it) == content {
-    if it.has("text") {
-      it.text
-    } else {
-      panic("Content must contain field `text`")
-    }
-  } else {
-    panic("Invalid type `" + type(it) + "`")
-  }
-}
-
-#let get-svg-image(..args) = image(format: "svg", ..args)
 
 #let bridge(code, kind) = {
   let arg = cbor.encode((
@@ -47,8 +33,9 @@
   if format == auto {
     return {
       let output = bridge(code, kind)
-      if output.images != none {
-        get-svg-image(output.images.last(), ..args)
+      if output.terminal != none {
+        let svgs = get-svg-array(output.terminal)
+        get-svg-image(svgs.last(), ..args)
       } else if output.print != none {
         str(output.print)
       }
@@ -82,16 +69,17 @@
   let result = (:)
   for fmt in format {
     let output = bridge(code, kind)
+    if fmt in image-format and output.terminal == none {
+      panic("No image output")
+    }
     result.insert(
       fmt,
-      if fmt in image-format and output.images == none {
-        panic("No image output")
-      } else if fmt == "image" {
-        output.images.map(data => get-svg-image(data, ..args))
+      if fmt == "image" {
+        get-svg-array(output.terminal).map(data => get-svg-image(data, ..args))
       } else if fmt == "string" {
-        output.images.map(str)
+        get-svg-array(output.terminal).map(str)
       } else if fmt == "bytes" {
-        output.images
+        get-svg-array(output.terminal)
       } else if fmt == "print" {
         if output.print == none {
           panic("No print output")
@@ -102,8 +90,8 @@
   }
 
   if result.len() == 1 {
-    result.values().first()
+    return result.values().first()
   } else {
-    result
+    return result
   }
 }

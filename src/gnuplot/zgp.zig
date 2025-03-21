@@ -41,13 +41,13 @@ pub fn fifoCookieFn(comptime FifoType: type) c.cookie_io_functions_t {
     };
 }
 
-fn init_memory() void {
+fn initMemory() void {
     c.extend_input_line();
     c.extend_token_table();
     c.replot_line = c.gp_strdup("");
 }
 
-fn init_term(term: [:0]const u8) void {
+fn initTerminal(term: [:0]const u8) void {
     const udv_term = c.get_udv_by_name(@constCast("GNUTERM"));
     _ = c.Gstring(&udv_term.*.udv_value, c.gp_strdup(term));
 
@@ -61,10 +61,10 @@ pub fn init(term: [:0]const u8) void {
     _ = c.add_udv_by_name(@constCast("GNUTERM"));
     _ = c.add_udv_by_name(@constCast("I"));
     _ = c.add_udv_by_name(@constCast("NaN"));
-    plot.init_constants();
+    plot.initConstants();
     c.udv_user_head = &c.udv_NaN.*.next_udv;
 
-    init_memory();
+    initMemory();
 
     c.sm_palette = std.mem.zeroes(c.t_sm_palette);
 
@@ -78,11 +78,11 @@ pub fn init(term: [:0]const u8) void {
 
     c.init_gadgets();
 
-    init_term(term);
+    initTerminal(term);
     c.push_terminal(0);
 
     c.update_gpval_variables(3);
-    plot.init_session();
+    plot.initSession();
 }
 
 // Only set once
