@@ -20,8 +20,6 @@ jobs:
 
       - name: Setup zig
         uses: mlugg/setup-zig@v1
-        with:
-          version: master
 
       - name: Check formatting with typstyle
         run: |

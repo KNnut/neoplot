@@ -26,8 +26,6 @@ jobs:
 
       - name: Setup zig
         uses: mlugg/setup-zig@v1
-        with:
-          version: master
 
       - name: Build
         run: zig build -Doptimize=${{ matrix.optimize }}
