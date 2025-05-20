@@ -19,7 +19,7 @@ jobs:
           chmod +x "$HOME/.local/bin/typstyle"
 
       - name: Setup zig
-        uses: mlugg/setup-zig@v1
+        uses: mlugg/setup-zig@v2
 
       - name: Check formatting with typstyle
         run: |
