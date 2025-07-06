@@ -51,8 +51,12 @@ fn initTerminal(term: [:0]const u8) void {
     const udv_term = c.get_udv_by_name(@constCast("GNUTERM"));
     _ = c.Gstring(&udv_term.*.udv_value, c.gp_strdup(term));
 
-    if (c.change_term(term, @intCast(term.len)) == null)
+    if (c.change_term(term, @intCast(term.len))) |terminal| {
+        if (terminal.*.options) |options|
+            options();
+    } else {
         _ = c.change_term("unknown", 7);
+    }
 
     c.term_on_entry = false;
 }
