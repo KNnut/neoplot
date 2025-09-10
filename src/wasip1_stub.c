@@ -22,12 +22,24 @@ int32_t __imported_wasi_snapshot_preview1_fd_fdstat_set_flags(int32_t, int32_t) 
     return __WASI_ERRNO_SUCCESS;
 }
 
+int32_t __imported_wasi_snapshot_preview1_fd_filestat_get(int32_t, int32_t) {
+    return __WASI_ERRNO_BADF;
+}
+
+int32_t __imported_wasi_snapshot_preview1_fd_pread(int32_t, int32_t, int32_t, int64_t, int32_t) {
+    return __WASI_ERRNO_SUCCESS;
+}
+
 int32_t __imported_wasi_snapshot_preview1_fd_prestat_get(int32_t, int32_t) {
     return __WASI_ERRNO_BADF;
 }
 
 int32_t __imported_wasi_snapshot_preview1_fd_prestat_dir_name(int32_t, int32_t, int32_t) {
     return __WASI_ERRNO_SUCCESS;
+}
+
+int32_t __imported_wasi_snapshot_preview1_fd_pwrite(int32_t, int32_t, int32_t, int64_t, int32_t) {
+    return __WASI_ERRNO_BADF;
 }
 
 int32_t __imported_wasi_snapshot_preview1_fd_read(int32_t, int32_t, int32_t, int32_t) {
@@ -39,7 +51,7 @@ int32_t __imported_wasi_snapshot_preview1_fd_seek(int32_t, int64_t, int32_t, int
 }
 
 int32_t __imported_wasi_snapshot_preview1_fd_write(int32_t, int32_t, int32_t, int32_t) {
-    return __WASI_ERRNO_NOTCAPABLE;
+    return __WASI_ERRNO_BADF;
 }
 
 int32_t __imported_wasi_snapshot_preview1_path_filestat_get(int32_t, int32_t, int32_t, int32_t, int32_t) {

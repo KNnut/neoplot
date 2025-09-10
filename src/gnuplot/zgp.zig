@@ -2,42 +2,23 @@ const std = @import("std");
 const c = @import("c");
 const plot = @import("plot.zig");
 
-pub fn fifoCookieFn(comptime FifoType: type) c.cookie_io_functions_t {
+pub fn ioCookieFn(comptime Type: type) c.cookie_io_functions_t {
     const cookieFn = struct {
-        fn readFn(cookie: ?*anyopaque, buf: [*c]u8, size: usize) callconv(.c) isize {
-            const fifo: *FifoType = @ptrCast(@alignCast(cookie orelse return 0));
-            const read_size = fifo.read(buf[0..size]);
-            return @intCast(read_size);
-        }
-
         fn writeFn(cookie: ?*anyopaque, buf: [*c]const u8, size: usize) callconv(.c) isize {
             if (size == 0) return 0;
-            const fifo: *FifoType = @ptrCast(@alignCast(cookie orelse return 0));
+            const writer: *Type = @ptrCast(@alignCast(cookie orelse return 0));
 
             const slice = buf[0..size];
-            fifo.write(slice) catch return 0;
+            writer.writeAll(slice) catch return 0;
             return @intCast(size);
-        }
-
-        // fn seekFn(cookie: ?*anyopaque, offset: [*c]c.off_t, whence: c_int) callconv(.c) c_int {
-        //     const fifo: *FifoType = @ptrCast(@alignCast(cookie orelse return 0));
-        //     _ = fifo;
-        //     std.log.debug("Seek, offset: {}, whence: {d}", .{ offset.*, whence });
-        //     return 0;
-        // }
-
-        fn closeFn(cookie: ?*anyopaque) callconv(.c) c_int {
-            const fifo: *FifoType = @ptrCast(@alignCast(cookie orelse return 0));
-            fifo.deinit();
-            return 0;
         }
     };
 
     return .{
-        .read = cookieFn.readFn,
+        // .read = cookieFn.readFn,
         .write = cookieFn.writeFn,
         // .seek = cookieFn.seekFn,
-        .close = cookieFn.closeFn,
+        // .close = cookieFn.closeFn,
     };
 }
 

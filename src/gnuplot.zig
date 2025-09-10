@@ -5,8 +5,6 @@ const ruby_wasm_runtime = @import("ruby_wasm_runtime");
 const Output = @import("Output.zig");
 const Allocator = std.mem.Allocator;
 
-const Fifo = std.fifo.LinearFifo(u8, .Dynamic);
-
 const log = std.log.scoped(.gnuplot);
 
 pub const CallType = enum {
@@ -32,19 +30,29 @@ fn innerCall(input: Input) !void {
 
 pub fn call(arena: Allocator, input: Input) !Output {
     // Redirect the output of graphics devices
-    var terminal_fifo = Fifo.init(arena);
-    gp_c.gpoutfile = gp_c.fopencookie(&terminal_fifo, "w", .{ .write = zgp.fifoCookieFn(Fifo).write });
+    var terminal_buf: std.Io.Writer.Allocating = .init(arena);
+    gp_c.gpoutfile = gp_c.fopencookie(&terminal_buf.writer, "w", zgp.ioCookieFn(std.Io.Writer));
     // Redirect the output of the `print` command
-    var print_fifo = Fifo.init(arena);
-    gp_c.print_out = gp_c.fopencookie(&print_fifo, "w", .{ .write = zgp.fifoCookieFn(Fifo).write });
+    var print_buf: std.Io.Writer.Allocating = .init(arena);
+    gp_c.print_out = gp_c.fopencookie(&print_buf.writer, "w", zgp.ioCookieFn(std.Io.Writer));
 
     log.debug("input.type={s}", .{@tagName(input.type)});
 
     // Use Asyncify-based setjmp
     try ruby_wasm_runtime.start(innerCall, .{input});
 
-    return .{
-        .terminal = if (terminal_fifo.readableLength() > 0) terminal_fifo.readableSlice(0) else null,
-        .print = if (print_fifo.readableLength() > 0) print_fifo.readableSlice(0) else null,
+    var output: Output = .{
+        .terminal = null,
+        .print = null,
     };
+
+    const output_terminal = terminal_buf.written();
+    if (output_terminal.len > 0)
+        output.terminal = output_terminal;
+
+    const output_print = print_buf.written();
+    if (output_print.len > 0)
+        output.print = output_print;
+
+    return output;
 }

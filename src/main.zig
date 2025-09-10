@@ -6,8 +6,6 @@ const gnuplot = @import("gnuplot.zig");
 const raw_c_allocator = @import("alloc.zig").raw_c_allocator;
 const Allocator = std.mem.Allocator;
 
-const Fifo = std.fifo.LinearFifo(u8, .Dynamic);
-
 comptime {
     @export(&pluginInit, .{ .name = "init" });
     @export(&pluginExec, .{ .name = "exec" });
@@ -44,9 +42,9 @@ fn bridge(length: usize) !void {
     if (input.code.len == 0) return;
 
     const output = try gnuplot.call(arena, input);
-    var fifo = Fifo.init(arena);
-    try output.toCbor(fifo.writer());
-    typst.send(fifo.readableSlice(0));
+    var buffer: std.Io.Writer.Allocating = .init(arena);
+    try output.toCbor(&buffer.writer);
+    typst.send(buffer.written());
 }
 
 fn getInputFromTypst(allocator: Allocator, length: usize) !gnuplot.Input {
