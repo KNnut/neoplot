@@ -36,7 +36,7 @@ pub fn call(arena: Allocator, input: Input) !Output {
     var print_buf: std.Io.Writer.Allocating = .init(arena);
     gp_c.print_out = gp_c.fopencookie(&print_buf.writer, "w", zgp.ioCookieFn(std.Io.Writer));
 
-    log.debug("input.type={s}", .{@tagName(input.type)});
+    log.debug("input.type={t}", .{input.type});
 
     // Use Asyncify-based setjmp
     try ruby_wasm_runtime.start(innerCall, .{input});
