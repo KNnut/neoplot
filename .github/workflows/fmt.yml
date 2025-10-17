@@ -6,7 +6,7 @@ jobs:
   fmt:
     runs-on: ubuntu-24.04-arm
     env:
-      TYPSTYLE_VERSION: 0.13.0
+      TYPSTYLE_VERSION: 0.13.18
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4

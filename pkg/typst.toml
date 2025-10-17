@@ -9,4 +9,4 @@ repository = "https://github.com/KNnut/neoplot"
 keywords = ["gnuplot", "plotting"]
 categories = ["visualization", "integration"]
 disciplines = ["mathematics"]
-compiler = "0.13.0"
+compiler = "0.14.0"
