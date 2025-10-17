@@ -1,4 +1,4 @@
-#import "utils.typ": get-text, get-svg-image, get-svg-array
+#import "utils.typ": get-svg-array, get-svg-image, get-text
 
 #let gp = plugin("neoplot.wasm")
 #let gp-exec = plugin.transition(gp.init).exec
@@ -45,16 +45,12 @@
   format = (format,)
     .flatten()
     .map(fmt => {
-      if type(fmt) == type {
-        if fmt == image {
-          "image"
-        } else if fmt == str {
-          "string"
-        } else if fmt == bytes {
-          "bytes"
-        } else {
-          fmt
-        }
+      if fmt == image {
+        "image"
+      } else if fmt == str {
+        "string"
+      } else if fmt == bytes {
+        "bytes"
       } else {
         fmt
       }
