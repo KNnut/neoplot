@@ -10,10 +10,13 @@ pub fn build(b: *std.Build) !void {
         .cpu_features_add = std.Target.wasm.featureSet(&.{
             .bulk_memory,
             .reference_types,
+            .simd128,
             // Not supported by Asyncify
             // .tail_call,
             // Not supported by Safari
             // .multimemory,
+            // Not supported by Firefox and Safari
+            // .relaxed_simd,
         }),
     });
 
@@ -156,7 +159,7 @@ pub fn build(b: *std.Build) !void {
             "--enable-reference-types",
             "--enable-nontrapping-float-to-int",
             "--enable-sign-ext",
-            // "--enable-simd",
+            "--enable-simd",
             // Not supported by Asyncify
             // "--enable-tail-call",
             "--enable-extended-const",
