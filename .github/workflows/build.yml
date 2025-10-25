@@ -36,3 +36,10 @@ jobs:
 
       - name: Pack
         run: zig build pack -Doptimize=${{ matrix.optimize }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: neoplot-${{ matrix.optimize }}
+          path: zig-out/neoplot-*.tar.xz
+          if-no-files-found: error
