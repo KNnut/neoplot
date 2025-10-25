@@ -5,7 +5,7 @@ A Typst package to use [gnuplot](http://www.gnuplot.info/) in Typst.
 ## Installation
 
 ```typ
-#import "@preview/neoplot:0.0.3" as gp
+#import "@preview/neoplot:0.0.4" as gp
 ```
 
 ## Getting Started
@@ -65,7 +65,7 @@ or
 A simple example:
 ````typ
 // Import neoplot
-#import "@preview/neoplot:0.0.3" as gp
+#import "@preview/neoplot:0.0.4" as gp
 
 #figure(
   gp.exec(
@@ -86,7 +86,7 @@ A simple example:
 A complex use case:
 ````typ
 // Import neoplot
-#import "@preview/neoplot:0.0.3" as gp
+#import "@preview/neoplot:0.0.4" as gp
 
 // A csv text in Typst
 #let csvdata = ```

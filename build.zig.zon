@@ -1,6 +1,6 @@
 .{
     .name = .neoplot,
-    .version = "0.0.3",
+    .version = "0.0.4",
     .minimum_zig_version = "0.15.2",
     .minimum_typst_version = "0.14.0",
 
