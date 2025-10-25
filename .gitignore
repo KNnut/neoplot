@@ -1,5 +1,4 @@
 .zig-cache
 zig-out
 
-/pkg/neoplot.wasm
-/pkg/examples/*.pdf
+*.pdf
