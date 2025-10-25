@@ -6,12 +6,12 @@
 
     .dependencies = .{
         .ziguplot = .{
-            .url = "https://github.com/KNnut/ziguplot/archive/9798e57eb7ebfeeb3493d8c3790b6e12a20756ef.tar.gz",
-            .hash = "ziguplot-0.0.1-HLJdx_eLAAAfZn_OcRsurvcDajveRcgJg7lqH5ES25YS",
+            .url = "https://github.com/KNnut/ziguplot/archive/994859666a692b29235cf13b700beff7f301109a.tar.gz",
+            .hash = "ziguplot-0.0.1-HLJdxxSLAACYAZgpunrmXnpTQcIfg11oHXOSQ-xt2vzO",
         },
         .zbor = .{
-            .url = "https://github.com/r4gus/zbor/archive/0.20.0.tar.gz",
-            .hash = "zbor-0.20.0-kr-CoJlkAwA0Uw1PW5t6XO3hb0wWcIePshjSK_UVnngt",
+            .url = "https://github.com/r4gus/zbor/archive/0.20.1.tar.gz",
+            .hash = "zbor-0.20.0-kr-CoK1kAwDtdlkCAsc43I4FkS-G2GJ0buELN1gCVfLN",
         },
         .ruby_wasm_runtime = .{
             .path = "deps/ruby_wasm_runtime",
