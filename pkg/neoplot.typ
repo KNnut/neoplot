@@ -1,6 +1,6 @@
 #import "utils.typ": get-svg-array, get-svg-image, get-text
 
-#let gp = plugin("neoplot.wasm")
+#let gp = plugin("bin/neoplot.wasm")
 #let gp-exec = plugin.transition(gp.init).exec
 
 #let bridge(code, kind) = {

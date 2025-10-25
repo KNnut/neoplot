@@ -1,6 +1,37 @@
 const std = @import("std");
+const pack = @import("src/build/pack.zig");
 
 pub fn build(b: *std.Build) !void {
+    const strip = b.option(
+        bool,
+        "strip",
+        "Remove debug information",
+    );
+
+    const stub_wasi = b.option(
+        bool,
+        "stub-wasi",
+        "Stub WASI functions",
+    ) orelse true;
+
+    const wasm_opt = b.option(
+        bool,
+        "wasm-opt",
+        "Use wasm-opt (in binaryen) to make Asyncify work and optimize the Wasm binary",
+    ) orelse true;
+
+    const mimalloc = b.option(
+        bool,
+        "mimalloc",
+        "Enable mimalloc",
+    ) orelse true;
+
+    const namespace = b.option(
+        pack.PackageNamespace,
+        "namespace",
+        "Namespace of the Typst package",
+    ) orelse .local;
+
     const target = b.resolveTargetQuery(.{
         .cpu_arch = .wasm32,
         .os_tag = .wasi,
@@ -29,11 +60,16 @@ pub fn build(b: *std.Build) !void {
             .root_source_file = b.path("src/main.zig"),
             .target = target,
             .optimize = optimize,
+            .strip = strip,
+            .omit_frame_pointer = strip,
+            .unwind_tables = if (strip orelse false) .none else null,
         }),
     });
     exe.entry = .disabled;
     exe.rdynamic = true;
     exe.wasi_exec_model = .reactor;
+    if (!is_debug)
+        exe.want_lto = true;
 
     const has_typst_env: bool = b.option(
         bool,
@@ -44,38 +80,6 @@ pub fn build(b: *std.Build) !void {
     const exe_options = b.addOptions();
     exe_options.addOption(bool, "has_typst_env", has_typst_env);
     exe.root_module.addOptions("build_options", exe_options);
-
-    const strip: ?bool = b.option(
-        bool,
-        "strip",
-        "Remove debug information",
-    );
-
-    const stub_wasi = b.option(
-        bool,
-        "stub-wasi",
-        "Stub WASI functions",
-    ) orelse true;
-
-    const wasm_opt = b.option(
-        bool,
-        "wasm-opt",
-        "Use wasm-opt (in binaryen) to make Asyncify work and optimize the Wasm binary",
-    ) orelse true;
-
-    const mimalloc: bool = b.option(
-        bool,
-        "mimalloc",
-        "Enable mimalloc",
-    ) orelse true;
-
-    if (!is_debug) {
-        exe.want_lto = true;
-        exe.root_module.unwind_tables = .none;
-    }
-
-    if (strip) |s|
-        exe.root_module.strip = s;
 
     const ziguplot_dep = b.dependency("ziguplot", .{
         .target = target,
@@ -140,9 +144,10 @@ pub fn build(b: *std.Build) !void {
     zgp_mod.addImport("c", translate_c_mod);
     exe.root_module.addImport("gp_c", translate_c_mod);
 
-    b.resolveInstallPrefix(b.pathFromRoot("pkg"), .{});
     const install_exe = b.addInstallArtifact(exe, .{
-        .dest_dir = .{ .override = .{ .custom = "" } },
+        .dest_dir = .{ .override = .{
+            .custom = pack.packageSubPath(b, namespace, &.{"bin"}),
+        } },
     });
 
     const opt_wasm_step = if (wasm_opt) blk: {
@@ -222,4 +227,10 @@ pub fn build(b: *std.Build) !void {
     } else &install_exe.step;
 
     b.getInstallStep().dependOn(opt_wasm_step);
+    pack.installPackageToml(b, namespace);
+    pack.installPackage(b, namespace);
+
+    const pack_step = b.step("pack", "Pack the package");
+    const pack_package_step = pack.packPackage(b, namespace);
+    pack_step.dependOn(pack_package_step);
 }
