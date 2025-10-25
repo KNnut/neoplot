@@ -9,13 +9,13 @@ jobs:
       TYPSTYLE_VERSION: 0.13.18
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup typstyle
         run: |
           mkdir -p "$HOME/.local/bin"
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-          curl -Lo "$HOME/.local/bin/typstyle" https://github.com/Enter-tainer/typstyle/releases/download/v$TYPSTYLE_VERSION/typstyle-aarch64-unknown-linux-gnu
+          curl -Lo "$HOME/.local/bin/typstyle" https://github.com/typstyle-rs/typstyle/releases/download/v$TYPSTYLE_VERSION/typstyle-aarch64-unknown-linux-gnu
           chmod +x "$HOME/.local/bin/typstyle"
 
       - name: Setup zig
