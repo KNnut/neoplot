@@ -26,7 +26,6 @@ pub fn installPackage(b: *std.Build, namespace: PackageNamespace) void {
 
 pub fn installPackageToml(b: *std.Build, namespace: PackageNamespace) void {
     const wf = b.addWriteFile("typst.toml", generatePackageToml(b));
-    // b.addInstallFile(source: LazyPath, dest_rel_path: []const u8)
     b.getInstallStep().dependOn(&b.addInstallDirectory(.{
         .source_dir = wf.getDirectory(),
         .install_dir = .prefix,
