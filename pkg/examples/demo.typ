@@ -1,4 +1,4 @@
-#import "../lib.typ" as gp
+#import "@local/neoplot:0.0.3" as gp
 
 #let title = [Gnuplot demos]
 #let subtitle = [in Typst]

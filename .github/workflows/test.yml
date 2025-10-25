@@ -7,7 +7,7 @@ jobs:
         optimize: [Debug, ReleaseSafe, ReleaseFast, ReleaseSmall]
     runs-on: macos-latest
     env:
-      TYPST_VERSION: 0.14.0-rc.1
+      TYPST_VERSION: 0.14.0
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -27,9 +27,12 @@ jobs:
         uses: mlugg/setup-zig@v2
 
       - name: Build
-        run: zig build -Doptimize=${{ matrix.optimize }}
+        run: zig build -p $HOME/.local/share/typst -Doptimize=${{ matrix.optimize }}
 
       - name: Test
         run: |
-          cd pkg
-          typst compile --root . examples/demo.typ
+          cd pkg/examples
+          typst compile demo.typ
+
+      - name: Pack
+        run: zig build pack -Doptimize=${{ matrix.optimize }}
