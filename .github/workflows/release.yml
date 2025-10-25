@@ -1,0 +1,35 @@
+name: Release
+on: push
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install binaryen
+
+      - name: Setup zig
+        uses: mlugg/setup-zig@v2
+
+      - name: Pack
+        run: zig build pack -Dnamespace=preview -Doptimize=ReleaseFast -Dstrip
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: neoplot-${{ github.ref_name }}
+          path: zig-out/neoplot-*.tar.xz
+          if-no-files-found: error
+
+      - name: Upload releases
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: zig-out/neoplot-*.tar.xz
+          fail_on_unmatched_files: true
