@@ -84,7 +84,7 @@ pub fn setJmp() !void {
     }
 }
 
-pub fn getErrorMessage() []const u8 {
+pub fn errorMessage() []const u8 {
     const gp_errmsg = c.get_udv_by_name(@constCast("GPVAL_ERRMSG")).*.udv_value.v.string_val;
     return std.mem.sliceTo(gp_errmsg, 0);
 }

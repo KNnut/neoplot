@@ -3,7 +3,7 @@ const cbor = @import("zbor");
 const zgp = @import("zgp");
 const typst = @import("typst.zig");
 const gnuplot = @import("gnuplot.zig");
-const raw_c_allocator = @import("alloc.zig").raw_c_allocator;
+const raw_c_allocator = std.heap.raw_c_allocator;
 const Allocator = std.mem.Allocator;
 
 comptime {
@@ -22,7 +22,7 @@ fn pluginExec(length: usize) callconv(.c) typst.ReturnType {
 
     bridge(length) catch |err| {
         const err_msg = switch (err) {
-            error.GnuplotError => zgp.getErrorMessage(),
+            error.GnuplotError => zgp.errorMessage(),
             else => @errorName(err),
         };
         typst.send(err_msg);
@@ -37,7 +37,7 @@ fn bridge(length: usize) !void {
     defer arena_state.deinit();
     const arena = arena_state.allocator();
 
-    const input = try getInputFromTypst(arena, length);
+    const input = try typstInput(arena, length);
     // Do nothing when code is empty
     if (input.code.len == 0) return;
 
@@ -47,7 +47,7 @@ fn bridge(length: usize) !void {
     typst.send(buffer.written());
 }
 
-fn getInputFromTypst(allocator: Allocator, length: usize) !gnuplot.Input {
+fn typstInput(allocator: Allocator, length: usize) !gnuplot.Input {
     const buf = try allocator.alloc(u8, length);
     defer allocator.free(buf);
     typst.receive(buf);

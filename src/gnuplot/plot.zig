@@ -10,11 +10,10 @@ comptime {
 
 pub var command_line_env = std.mem.zeroes(c.JMP_BUF);
 fn bailToCommandLine() callconv(.c) noreturn {
-    if (c.fit_env) |fit_env| {
-        c._rb_wasm_longjmp(fit_env, c.TRUE);
-    } else {
+    if (c.fit_env) |fit_env|
+        c._rb_wasm_longjmp(fit_env, c.TRUE)
+    else
         c._rb_wasm_longjmp(&command_line_env, c.TRUE);
-    }
     unreachable;
 }
 

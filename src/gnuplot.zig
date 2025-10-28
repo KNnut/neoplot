@@ -32,6 +32,7 @@ pub fn call(arena: Allocator, input: Input) !Output {
     // Redirect the output of graphics devices
     var terminal_buf: std.Io.Writer.Allocating = .init(arena);
     gp_c.gpoutfile = gp_c.fopencookie(&terminal_buf.writer, "w", zgp.ioCookieFn(std.Io.Writer));
+
     // Redirect the output of the `print` command
     var print_buf: std.Io.Writer.Allocating = .init(arena);
     gp_c.print_out = gp_c.fopencookie(&print_buf.writer, "w", zgp.ioCookieFn(std.Io.Writer));

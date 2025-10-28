@@ -60,6 +60,7 @@ pub fn build(b: *std.Build) !void {
             .root_source_file = b.path("src/main.zig"),
             .target = target,
             .optimize = optimize,
+            .single_threaded = true,
             .strip = strip,
             .omit_frame_pointer = strip,
             .unwind_tables = if (strip orelse false) .none else null,
