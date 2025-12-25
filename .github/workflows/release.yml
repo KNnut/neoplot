@@ -4,10 +4,10 @@ permissions:
   contents: write
 jobs:
   release:
-    runs-on: macos-latest
+    runs-on: macos-26
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install dependencies
         run: |
@@ -21,7 +21,7 @@ jobs:
         run: zig build pack -Dnamespace=preview -Doptimize=ReleaseFast -Dstrip
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: neoplot-${{ github.ref_name }}
           path: zig-out/neoplot-*.tar.xz

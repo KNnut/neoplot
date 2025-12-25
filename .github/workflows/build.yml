@@ -5,12 +5,12 @@ jobs:
     strategy:
       matrix:
         optimize: [Debug, ReleaseSafe, ReleaseFast, ReleaseSmall]
-    runs-on: macos-latest
+    runs-on: macos-26
     env:
       TYPST_VERSION: 0.14.0
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install dependencies
         run: |
@@ -38,7 +38,7 @@ jobs:
         run: zig build pack -Doptimize=${{ matrix.optimize }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: neoplot-${{ matrix.optimize }}
           path: zig-out/neoplot-*.tar.xz
