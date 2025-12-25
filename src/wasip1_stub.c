@@ -1,7 +1,7 @@
-#include <wasi/api.h>
-#include <sys/types.h>
 #include <errno.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <wasi/api.h>
 
 // wasi_snapshot_preview1_environ_get
 // wasi_snapshot_preview1_environ_sizes_get
@@ -87,7 +87,7 @@ off_t lseek(int fildes, off_t offset, int whence) {
 
 // wasi_snapshot_preview1_fd_seek
 off_t __stdio_seek(FILE *f, off_t off, int whence) {
-	return 0;
+    return 0;
 }
 
 // wasi_snapshot_preview1_fd_write
@@ -102,11 +102,14 @@ ssize_t writev(int fildes, const struct iovec *iov, int iovcnt) {
     return -1;
 }
 
-int32_t __imported_wasi_snapshot_preview1_path_filestat_get(int32_t, int32_t, int32_t, int32_t, int32_t) {
+int32_t
+__imported_wasi_snapshot_preview1_path_filestat_get(int32_t, int32_t, int32_t, int32_t, int32_t) {
     return __WASI_ERRNO_BADF;
 }
 
-int32_t __imported_wasi_snapshot_preview1_path_open(int32_t, int32_t, int32_t, int32_t, int32_t, int64_t, int64_t, int32_t, int32_t) {
+int32_t __imported_wasi_snapshot_preview1_path_open(
+    int32_t, int32_t, int32_t, int32_t, int32_t, int64_t, int64_t, int32_t, int32_t
+) {
     return __WASI_ERRNO_BADF;
 }
 
@@ -116,7 +119,7 @@ int usleep(unsigned long) {
 }
 
 // wasi_snapshot_preview1_proc_exit
-_Noreturn void _Exit(int) { }
+_Noreturn void _Exit(int) {}
 
 int32_t __imported_wasi_snapshot_preview1_sched_yield() {
     return __WASI_ERRNO_SUCCESS;
