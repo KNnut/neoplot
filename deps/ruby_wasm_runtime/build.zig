@@ -33,7 +33,7 @@ pub fn build(b: *std.Build) !void {
         "setjmp_core.S",
     };
 
-    lib.addCSourceFiles(.{
+    lib.root_module.addCSourceFiles(.{
         .root = b.path("src"),
         .files = &sources,
     });

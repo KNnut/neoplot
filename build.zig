@@ -70,7 +70,7 @@ pub fn build(b: *std.Build) !void {
     exe.rdynamic = true;
     exe.wasi_exec_model = .reactor;
     if (!is_debug)
-        exe.want_lto = true;
+        exe.lto = .full;
 
     const has_typst_env: bool = b.option(
         bool,
@@ -104,17 +104,17 @@ pub fn build(b: *std.Build) !void {
     exe.root_module.addImport("zgp", zgp_mod);
 
     const libgnuplot = ziguplot_dep.artifact("libgnuplot");
-    libgnuplot.linkLibrary(ruby_wasm_runtime_dep.artifact("ruby_wasm_runtime"));
-    libgnuplot.addCSourceFile(.{
+    libgnuplot.root_module.linkLibrary(ruby_wasm_runtime_dep.artifact("ruby_wasm_runtime"));
+    libgnuplot.root_module.addCSourceFile(.{
         .file = b.path("src/gp_stub.c"),
         .flags = &.{"-std=c23"},
     });
     if (stub_wasi)
-        libgnuplot.addCSourceFile(.{
+        libgnuplot.root_module.addCSourceFile(.{
             .file = b.path("src/wasip1_stub.c"),
             .flags = &.{"-std=c23"},
         });
-    exe.linkLibrary(libgnuplot);
+    exe.root_module.linkLibrary(libgnuplot);
 
     const gnuplot_h_wf = b.addWriteFiles();
     const gnuplot_h = gnuplot_h_wf.add("gnuplot.h",
