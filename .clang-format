@@ -1,0 +1,11 @@
+BasedOnStyle: LLVM
+
+IndentWidth: 4
+ColumnLimit: 100
+AllowShortFunctionsOnASingleLine: Inline
+BreakAfterReturnType: Automatic
+
+BinPackParameters: OnePerLine
+BinPackArguments: false
+
+AlignAfterOpenBracket: BlockIndent
