@@ -7,7 +7,7 @@ jobs:
     runs-on: macos-26
     defaults:
       run:
-        shell: zsh
+        shell: zsh {0}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
