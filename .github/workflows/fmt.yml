@@ -30,3 +30,8 @@ jobs:
         run: |
           shopt -s globstar
           zig fmt --check **/*.{zig,zon}
+
+      - name: Check formatting with clang-format
+        run: |
+          shopt -s globstar
+          clang-format -n --Werror **/*.{c,h}
