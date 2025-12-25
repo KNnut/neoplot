@@ -39,10 +39,16 @@ ssize_t pwritev(int fildes, const struct iovec *iov, int iovcnt, off_t offset) {
     return __WASI_ERRNO_BADF;
 }
 
+#if _FORTIFY_SOURCE > 0
+int32_t __imported_wasi_snapshot_preview1_fd_close(int32_t) {
+    return __WASI_ERRNO_SUCCESS;
+}
+#else
 // wasi_snapshot_preview1_fd_close
 int close(int fd) {
     return 0;
 }
+#endif
 
 int32_t __imported_wasi_snapshot_preview1_fd_fdstat_get(int32_t, int32_t) {
     return __WASI_ERRNO_SUCCESS;
