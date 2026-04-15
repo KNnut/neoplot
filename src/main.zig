@@ -1,10 +1,16 @@
 const std = @import("std");
+const build_options = @import("build_options");
 const cbor = @import("zbor");
 const zgp = @import("zgp");
 const typst = @import("typst.zig");
 const gnuplot = @import("gnuplot.zig");
-const raw_c_allocator = std.heap.raw_c_allocator;
+const c_allocator = std.heap.c_allocator;
 const Allocator = std.mem.Allocator;
+
+pub const panic = std.debug.no_panic;
+pub const std_options: std.Options = .{
+    .log_level = @enumFromInt(@intFromEnum(build_options.log_level)),
+};
 
 comptime {
     @export(&pluginInit, .{ .name = "init" });
@@ -33,7 +39,7 @@ fn pluginExec(length: usize) callconv(.c) typst.ReturnType {
 }
 
 fn bridge(length: usize) !void {
-    var arena_state = std.heap.ArenaAllocator.init(raw_c_allocator);
+    var arena_state = std.heap.ArenaAllocator.init(c_allocator);
     defer arena_state.deinit();
     const arena = arena_state.allocator();
 

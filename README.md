@@ -22,7 +22,7 @@ Just add this line to your Typst document:
 
 Additional requirements:
 
-- [Zig 0.15.2](https://ziglang.org/download/#release-0.15.2)
+- [Zig 0.16.0](https://ziglang.org/download/#release-0.16.0)
 - wasm-opt (in [Binaryen](https://github.com/WebAssembly/binaryen))
 
 Build and install:
@@ -37,7 +37,7 @@ zig build -p ~/.local/share/typst -Doptimize=ReleaseFast -Dstrip
 Then add this line to your Typst document:
 
 ```typ
-#import "@local/neoplot:0.0.4" as gp
+#import "@local/neoplot:0.0.5" as gp
 ```
 
 ## Getting Started

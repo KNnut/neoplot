@@ -1,29 +1,32 @@
 .{
     .name = .neoplot,
-    .version = "0.0.4",
-    .minimum_zig_version = "0.15.2",
+    .version = "0.0.5",
+    .fingerprint = 0x9a41c626e0641c0f,
+    .minimum_zig_version = "0.16.0",
     .minimum_typst_version = "0.14.0",
 
     .dependencies = .{
         .ziguplot = .{
-            .url = "https://github.com/KNnut/ziguplot/archive/994859666a692b29235cf13b700beff7f301109a.tar.gz",
-            .hash = "ziguplot-0.0.1-HLJdxxSLAACYAZgpunrmXnpTQcIfg11oHXOSQ-xt2vzO",
+            .url = "git+https://github.com/KNnut/ziguplot#13c9645c860846e54583659ce106c1269d6cdbce",
+            .hash = "ziguplot-6.1.0-dev+4d53e45-HLJdx0yDAAD1pONZJA181LslQAJiiljkwcmz8eeSoMDk",
         },
         .zbor = .{
-            .url = "https://github.com/r4gus/zbor/archive/0.20.1.tar.gz",
-            .hash = "zbor-0.20.0-kr-CoK1kAwDtdlkCAsc43I4FkS-G2GJ0buELN1gCVfLN",
+            .url = "git+https://codeberg.org/r4gus/zbor?ref=0.21.2#658c1c0ec607557b52d2e2a42acbfad31058ecee",
+            .hash = "zbor-0.21.2-kr-CoPF7AwAU2EqWqJzgxd1jHhpaaRBK0_c1LCgiwTbn",
         },
         .ruby_wasm_runtime = .{
             .path = "deps/ruby_wasm_runtime",
         },
     },
-
     .paths = .{
         "build.zig",
         "build.zig.zon",
         "deps",
         "src",
+        "pkg/lib.typ",
+        "pkg/neoplot.typ",
+        "pkg/utils.typ",
+        "LICENSE",
+        "README.md",
     },
-
-    .fingerprint = 0x9a41c626e0641c0f,
 }

@@ -20,6 +20,12 @@ pub fn build(b: *std.Build) !void {
         "Use wasm-opt (in binaryen) to make Asyncify work and optimize the Wasm binary",
     ) orelse true;
 
+    const log = b.option(
+        std.log.Level,
+        "log",
+        "Log level",
+    ) orelse .err;
+
     const namespace = b.option(
         pack.PackageNamespace,
         "namespace",
@@ -40,7 +46,7 @@ pub fn build(b: *std.Build) !void {
             // .tail_call,
             // Not supported by Safari
             // .multimemory,
-            // Not supported by Firefox and Safari
+            // Not supported by Safari
             // .relaxed_simd,
         }),
     });
@@ -66,9 +72,14 @@ pub fn build(b: *std.Build) !void {
     if (!is_debug)
         exe.lto = .full;
 
+    const exe_options = b.addOptions();
+    exe_options.addOption(std.log.Level, "log_level", log);
+    exe.root_module.addOptions("build_options", exe_options);
+
     const ziguplot_dep = b.dependency("ziguplot", .{
         .target = target,
         .optimize = optimize,
+        .@"wasm-eh" = false,
     });
 
     const zbor_dep = b.dependency("zbor", .{ .target = target, .optimize = optimize });
@@ -86,18 +97,18 @@ pub fn build(b: *std.Build) !void {
     zgp_mod.addImport("ruby_wasm_runtime", ruby_wasm_runtime_mod);
     exe.root_module.addImport("zgp", zgp_mod);
 
-    const libgnuplot = ziguplot_dep.artifact("libgnuplot");
-    libgnuplot.root_module.linkLibrary(ruby_wasm_runtime_dep.artifact("ruby_wasm_runtime"));
-    libgnuplot.root_module.addCSourceFile(.{
+    const gnuplot = @import("ziguplot").artifact(ziguplot_dep, .lib);
+    gnuplot.root_module.linkLibrary(ruby_wasm_runtime_dep.artifact("ruby_wasm_runtime"));
+    gnuplot.root_module.addCSourceFile(.{
         .file = b.path("src/gp_stub.c"),
         .flags = &.{"-std=c23"},
     });
     if (stub_wasi)
-        libgnuplot.root_module.addCSourceFile(.{
+        gnuplot.root_module.addCSourceFile(.{
             .file = b.path("src/wasip1_stub.c"),
             .flags = &.{"-std=c23"},
         });
-    exe.root_module.linkLibrary(libgnuplot);
+    exe.root_module.linkLibrary(gnuplot);
 
     const gnuplot_h_wf = b.addWriteFiles();
     const gnuplot_h = gnuplot_h_wf.add("gnuplot.h",
@@ -120,9 +131,9 @@ pub fn build(b: *std.Build) !void {
     translate_c.defineCMacro("HAVE_CONFIG_H", null);
 
     translate_c.addIncludePath(ruby_wasm_runtime_dep.path("src"));
-    for (libgnuplot.root_module.include_dirs.items) |item|
+    for (gnuplot.root_module.include_dirs.items) |item|
         try translate_c.include_dirs.append(item);
-    translate_c.step.dependOn(&libgnuplot.step);
+    translate_c.step.dependOn(&gnuplot.step);
 
     const translate_c_mod = translate_c.createModule();
     zgp_mod.addImport("c", translate_c_mod);

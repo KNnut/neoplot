@@ -39,35 +39,29 @@ ssize_t pwritev(int fildes, const struct iovec *iov, int iovcnt, off_t offset) {
     return __WASI_ERRNO_BADF;
 }
 
-#if _FORTIFY_SOURCE > 0
-int32_t __imported_wasi_snapshot_preview1_fd_close(int32_t) {
-    return __WASI_ERRNO_SUCCESS;
+// wasi_snapshot_preview1_fd_fdstat_get
+// wasi_snapshot_preview1_fd_fdstat_set_flags
+// wasi_snapshot_preview1_fd_prestat_get
+// wasi_snapshot_preview1_fd_prestat_dir_name
+// wasi_snapshot_preview1_path_open
+FILE *fopen(const char *restrict filename, const char *restrict mode) {
+    return NULL;
 }
-#else
+
+// wasi_snapshot_preview1_fd_prestat_get
+// wasi_snapshot_preview1_fd_prestat_dir_name
+int chdir(const char *path) {
+    return 0;
+}
+
 // wasi_snapshot_preview1_fd_close
 int close(int fd) {
     return 0;
 }
-#endif
 
-int32_t __imported_wasi_snapshot_preview1_fd_fdstat_get(int32_t, int32_t) {
-    return __WASI_ERRNO_SUCCESS;
-}
-
-int32_t __imported_wasi_snapshot_preview1_fd_fdstat_set_flags(int32_t, int32_t) {
-    return __WASI_ERRNO_SUCCESS;
-}
-
-int32_t __imported_wasi_snapshot_preview1_fd_filestat_get(int32_t, int32_t) {
-    return __WASI_ERRNO_BADF;
-}
-
-int32_t __imported_wasi_snapshot_preview1_fd_prestat_get(int32_t, int32_t) {
-    return __WASI_ERRNO_BADF;
-}
-
-int32_t __imported_wasi_snapshot_preview1_fd_prestat_dir_name(int32_t, int32_t, int32_t) {
-    return __WASI_ERRNO_SUCCESS;
+// wasi_snapshot_preview1_fd_fdstat_get
+size_t __stdout_write(FILE *f, const unsigned char *buf, size_t len) {
+    return 0;
 }
 
 // wasi_snapshot_preview1_fd_read
@@ -102,29 +96,15 @@ ssize_t writev(int fildes, const struct iovec *iov, int iovcnt) {
     return -1;
 }
 
-int32_t
-__imported_wasi_snapshot_preview1_path_filestat_get(int32_t, int32_t, int32_t, int32_t, int32_t) {
-    return __WASI_ERRNO_BADF;
-}
-
-int32_t __imported_wasi_snapshot_preview1_path_open(
-    int32_t, int32_t, int32_t, int32_t, int32_t, int64_t, int64_t, int32_t, int32_t
-) {
-    return __WASI_ERRNO_BADF;
-}
-
 // wasi_snapshot_preview1_poll_oneoff
 int usleep(unsigned long) {
     return 0;
 }
 
-// wasi_snapshot_preview1_proc_exit
-_Noreturn void _Exit(int) {}
+_Noreturn void __imported_wasi_snapshot_preview1_proc_exit(int32_t) {}
 
-int32_t __imported_wasi_snapshot_preview1_sched_yield() {
-    return __WASI_ERRNO_SUCCESS;
-}
-
+#ifndef NDEBUG
 int32_t __imported_wasi_snapshot_preview1_random_get(int32_t, int32_t) {
     return __WASI_ERRNO_SUCCESS;
 }
+#endif

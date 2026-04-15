@@ -47,7 +47,7 @@ pub fn packPackage(b: *std.Build, namespace: PackageNamespace) *std.Build.Step {
     tar.step.dependOn(&wf.step);
 
     const install_file = b.addInstallFile(
-        tar.captureStdOut(),
+        tar.captureStdOut(.{}),
         b.fmt("{s}-{s}.tar.xz", .{ @tagName(build_zon.name), build_zon.version }),
     );
     install_file.step.dependOn(&tar.step);

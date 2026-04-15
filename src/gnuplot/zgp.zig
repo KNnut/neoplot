@@ -29,7 +29,7 @@ fn initMemory() void {
 }
 
 fn initTerminal(term: [:0]const u8) void {
-    const udv_term = c.get_udv_by_name(@constCast("GNUTERM"));
+    const udv_term = c.add_udv_by_name(@constCast("GNUTERM"));
     _ = c.Gstring(&udv_term.*.udv_value, c.gp_strdup(term));
 
     if (c.change_term(term, @intCast(term.len))) |terminal| {
@@ -43,11 +43,7 @@ fn initTerminal(term: [:0]const u8) void {
 }
 
 pub fn init(term: [:0]const u8) void {
-    _ = c.add_udv_by_name(@constCast("GNUTERM"));
-    _ = c.add_udv_by_name(@constCast("I"));
-    _ = c.add_udv_by_name(@constCast("NaN"));
     plot.initConstants();
-    c.udv_user_head = &c.udv_NaN.*.next_udv;
 
     initMemory();
 

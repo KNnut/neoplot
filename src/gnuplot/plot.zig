@@ -4,6 +4,7 @@ const ruby_wasm_runtime = @import("ruby_wasm_runtime");
 
 comptime {
     @export(&bailToCommandLine, .{ .name = "bail_to_command_line", .visibility = .hidden });
+    @export(&restrictPopen, .{ .name = "restrict_popen", .visibility = .hidden });
     @export(&initConstants, .{ .name = "init_constants", .visibility = .hidden });
     @export(&initSession, .{ .name = "init_session", .visibility = .hidden });
 }
@@ -17,14 +18,27 @@ fn bailToCommandLine() callconv(.c) noreturn {
     unreachable;
 }
 
+fn restrictPopen() callconv(.c) void {
+    c.int_error(c.c_token - 1, "This copy of gnuplot does not support popen");
+}
+
+fn initUdv(name: [:0]const u8, re: c.double_t, im: c.double_t) void {
+    const udv = c.get_udv_by_name(@constCast(name));
+    _ = c.Gcomplex(&udv.*.udv_value, re, im);
+    udv.*.locality = -1;
+}
+
 pub fn initConstants() callconv(.c) void {
-    _ = c.Gcomplex(&c.udv_pi.udv_value, std.math.pi, 0.0);
+    const names = .{ "pi", "I", "Inf", "NaN" };
+    const res = .{ c.M_PI, 0.0, c.INFINITY, c.not_a_number() };
+    const ims = .{ 0.0, 1.0, 0.0, 0.0 };
 
-    c.udv_I = c.get_udv_by_name(@constCast("I"));
-    _ = c.Gcomplex(&c.udv_I.*.udv_value, 0.0, 1.0);
-
-    c.udv_NaN = c.get_udv_by_name(@constCast("NaN"));
-    _ = c.Gcomplex(&c.udv_NaN.*.udv_value, c.not_a_number(), 0.0);
+    inline for (names) |name|
+        c.del_udv_by_name(@constCast(name), false);
+    inline for (names) |name|
+        _ = c.add_udv_by_name(@constCast(name));
+    inline for (names, res, ims) |name, re, im|
+        initUdv(name, re, im);
 }
 
 pub fn initSession() callconv(.c) void {
