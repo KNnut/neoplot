@@ -20,12 +20,6 @@ pub fn build(b: *std.Build) !void {
         "Use wasm-opt (in binaryen) to make Asyncify work and optimize the Wasm binary",
     ) orelse true;
 
-    const mimalloc = b.option(
-        bool,
-        "mimalloc",
-        "Enable mimalloc",
-    ) orelse true;
-
     const namespace = b.option(
         pack.PackageNamespace,
         "namespace",
@@ -72,20 +66,9 @@ pub fn build(b: *std.Build) !void {
     if (!is_debug)
         exe.lto = .full;
 
-    const has_typst_env: bool = b.option(
-        bool,
-        "typst-env",
-        "Build for Typst environment",
-    ) orelse true;
-
-    const exe_options = b.addOptions();
-    exe_options.addOption(bool, "has_typst_env", has_typst_env);
-    exe.root_module.addOptions("build_options", exe_options);
-
     const ziguplot_dep = b.dependency("ziguplot", .{
         .target = target,
         .optimize = optimize,
-        .mimalloc = mimalloc,
     });
 
     const zbor_dep = b.dependency("zbor", .{ .target = target, .optimize = optimize });
