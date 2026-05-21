@@ -21,14 +21,15 @@ jobs:
         run: zig build pack -Dnamespace=preview -Doptimize=ReleaseFast -Dstrip
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: neoplot-${{ github.ref_name }}
           path: zig-out/neoplot-*.tar.xz
+          archive: false
           if-no-files-found: error
 
       - name: Upload releases
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: github.ref_type == 'tag'
         with:
           files: zig-out/neoplot-*.tar.xz
