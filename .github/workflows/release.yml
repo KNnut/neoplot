@@ -23,7 +23,6 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: neoplot-${{ github.ref_name }}
           path: zig-out/neoplot-*.tar.xz
           archive: false
           if-no-files-found: error

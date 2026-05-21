@@ -34,12 +34,14 @@ jobs:
           typst compile demo.typ
 
       - name: Pack
-        run: zig build pack -Doptimize=${{ matrix.optimize }}
+        run: |
+          VERSION=$(perl -ne 'print $& if /\.\s*version\s*=\s*"\K[^"]+/' build.zig.zon)
+          zig build pack -Doptimize=${{ matrix.optimize }}
+          mv zig-out/neoplot-${VERSION}.tar.xz neoplot-${{ matrix.optimize }}-${VERSION}+${GITHUB_SHA::7}.tar.xz
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: neoplot-${{ matrix.optimize }}
-          path: zig-out/neoplot-*.tar.xz
+          path: neoplot-${{ matrix.optimize }}-*.tar.xz
           archive: false
           if-no-files-found: error
